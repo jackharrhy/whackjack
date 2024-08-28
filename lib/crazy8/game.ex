@@ -2,7 +2,7 @@ defmodule Crazy8.Game do
   alias Crazy8.Player
 
   @derive Jason.Encoder
-  defstruct messagdes: [],
+  defstruct messages: [],
             code: nil,
             state: :setup,
             players: []

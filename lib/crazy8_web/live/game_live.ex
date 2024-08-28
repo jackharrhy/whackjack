@@ -5,6 +5,8 @@ defmodule Crazy8Web.GameLive do
   alias Crazy8.GameServer
   alias Crazy8.GameSupervisor
 
+  require Logger
+
   def mount(%{"code" => code} = params, %{"session_id" => session_id}, socket) do
     debug = Map.has_key?(params, "debug")
 
@@ -18,7 +20,10 @@ defmodule Crazy8Web.GameLive do
       )
 
     unless GameServer.game_exists?(code) do
+      Logger.debug("Starting game #{code}")
       GameSupervisor.start_game(code)
+    else
+      Logger.debug("Game already exists #{code}")
     end
 
     {:ok, game} = GameServer.get_game(code)

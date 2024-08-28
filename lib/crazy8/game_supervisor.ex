@@ -3,6 +3,8 @@ defmodule Crazy8.GameSupervisor do
 
   alias Crazy8.GameServer
 
+  require Logger
+
   def start_link(_arg) do
     DynamicSupervisor.start_link(__MODULE__, nil, name: __MODULE__)
   end
@@ -18,7 +20,9 @@ defmodule Crazy8.GameSupervisor do
       restart: :transient
     }
 
-    DynamicSupervisor.start_child(__MODULE__, child_spec)
+    Logger.debug("Supervisor starting up game server: #{code}")
+
+    {:ok, _} = DynamicSupervisor.start_child(__MODULE__, child_spec)
   end
 
   def stop_game(code) do
