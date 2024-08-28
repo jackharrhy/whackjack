@@ -1,21 +1,26 @@
 defmodule Crazy8.Game do
   alias Crazy8.Player
+  alias Crazy8.Deck
 
   @derive Jason.Encoder
   defstruct messages: [],
             code: nil,
             state: :setup,
-            players: []
+            players: [],
+            deck: nil
 
   @max_players 4
 
   def new(code) do
+    deck = Deck.new()
+
     struct!(
       __MODULE__,
       messages: [
         "game #{code} created"
       ],
-      code: code
+      code: code,
+      deck: deck
     )
   end
 
