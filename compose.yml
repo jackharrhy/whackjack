@@ -1,0 +1,7 @@
+services:
+  crazy8:
+    build: ./.
+    ports:
+      - "127.0.0.1:4001:4000"
+    environment:
+      - SECRET_KEY_BASE=crazy8-is-played-with-a-deck-of-52-cards-and-4-jokers-which-are-used-as-wild-cards-it-is-a-game-of-2-to-8-players

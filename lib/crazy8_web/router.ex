@@ -17,7 +17,12 @@ defmodule Crazy8Web.Router do
   scope "/", Crazy8Web do
     pipe_through :browser
 
-    get "/", PageController, :home
+    get "/setup", EnsureSessionController, :index
+
+    live_session :default do
+      live "/", LobbyLive
+      live "/game/:code", GameLive
+    end
   end
 
   # Other scopes may use custom stacks.

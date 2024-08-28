@@ -14,7 +14,9 @@ defmodule Crazy8.Application do
       # Start a worker by calling: Crazy8.Worker.start_link(arg)
       # {Crazy8.Worker, arg},
       # Start to serve requests, typically the last entry
-      Crazy8Web.Endpoint
+      Crazy8Web.Endpoint,
+      Crazy8.GameSupervisor,
+      {Registry, keys: :unique, name: Crazy8.GameRegistry}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
