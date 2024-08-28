@@ -9,7 +9,7 @@ import Config
 config :crazy8, Crazy8Web.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {127, 0, 0, 1}, port: 6000],
+  http: [ip: {127, 0, 0, 1}, port: 7000],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
@@ -32,7 +32,7 @@ config :crazy8, Crazy8Web.Endpoint,
 # The `http:` config above can be replaced with:
 #
 #     https: [
-#       port: 6001,
+#       port: 7001,
 #       cipher_suite: :strong,
 #       keyfile: "priv/cert/selfsigned_key.pem",
 #       certfile: "priv/cert/selfsigned.pem"

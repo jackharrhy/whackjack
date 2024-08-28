@@ -34,9 +34,15 @@ defmodule Crazy8.GameServer do
 
   @impl GenServer
   def handle_call({:add_player, player_id, player_name}, _from, state) do
+    Logger.debug("Adding player #{player_id} to game #{state.game.code}")
+
     case Game.add_player(state.game, player_id, player_name) do
-      {:ok, game, player} -> {:reply, {:ok, game, player}, %{state | game: game}}
-      {:error, _} = error -> {:reply, error, state}
+      {:ok, game, player} ->
+        broadcast_game_updated!(game.code, game)
+        {:reply, {:ok, game, player}, %{state | game: game}}
+
+      {:error, _} = error ->
+        {:reply, error, state}
     end
   end
 
@@ -47,9 +53,9 @@ defmodule Crazy8.GameServer do
 
   @impl GenServer
   def handle_info({:put_game_into_state, game_state}, state) do
-    Logger.info("Putting game state from #{inspect(state.game.state)} to #{inspect(game_state)}")
+    Logger.debug("Putting game state from #{inspect(state.game.state)} to #{inspect(game_state)}")
     game = Game.put_game_into_state(state.game, game_state)
-    broadcast_game_updated!(game.slug, game)
+    broadcast_game_updated!(game.code, game)
     {:noreply, %{state | game: game}}
   end
 

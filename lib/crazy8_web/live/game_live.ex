@@ -72,9 +72,9 @@ defmodule Crazy8Web.GameLive do
     <%= if @debug do %>
       <div class="bg-black text-white p-4 mb-2">
         <p>player</p>
-        <code><pre><%= Jason.encode!(@player, pretty: true) %></pre></code>
+         <code><pre><%= Jason.encode!(@player, pretty: true) %></pre></code>
         <p>game</p>
-        <code><pre><%= Jason.encode!(@game, pretty: true) %></pre></code>
+         <code><pre><%= Jason.encode!(@game, pretty: true) %></pre></code>
       </div>
     <% end %>
     """
@@ -104,7 +104,7 @@ defmodule Crazy8Web.GameLive do
       name: name
     } = socket.assigns
 
-    case GameServer.add_player(game.slug, session_id, name) do
+    case GameServer.add_player(game.code, session_id, name) do
       {:ok, game, player} ->
         socket
         |> assign(game: game, player: player)
