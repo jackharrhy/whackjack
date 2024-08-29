@@ -84,6 +84,7 @@ defmodule Crazy8.GameServer do
     end
   end
 
+  @impl GenServer
   def handle_info({:put_game_into_state, game_state}, state) do
     Logger.debug("Putting game state from #{inspect(state.game.state)} to #{inspect(game_state)}")
     game = Game.put_game_into_state(state.game, game_state)

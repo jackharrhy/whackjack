@@ -184,6 +184,10 @@ defmodule Crazy8Web.GameLive do
     {:noreply, socket}
   end
 
+  def handle_info({:clear_flash, level}, socket) do
+    {:noreply, clear_flash(socket, Atom.to_string(level))}
+  end
+
   def add_self_to_game(socket) do
     %{
       game: game,
@@ -200,10 +204,6 @@ defmodule Crazy8Web.GameLive do
         socket
         |> put_temporary_flash(:error, "#{reason}")
     end
-  end
-
-  def handle_info({:clear_flash, level}, socket) do
-    {:noreply, clear_flash(socket, Atom.to_string(level))}
   end
 
   defp put_temporary_flash(socket, level, message) do
