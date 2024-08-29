@@ -7,7 +7,8 @@ defmodule Crazy8.Game do
             code: nil,
             state: :setup,
             players: [],
-            deck: nil
+            deck: nil,
+            host_id: nil
 
   @max_players 4
 
@@ -69,11 +70,16 @@ defmodule Crazy8.Game do
         player = Player.new(player_id, player_name, [])
 
         game =
+          if is_nil(game.host_id) do
+            Map.put(game, :host_id, player_id)
+          else
+            game
+          end
+
+        game =
           game
           |> Map.put(:players, game.players ++ [player])
           |> new_message("player #{player} joined")
-
-        {:ok, game} = game |> deal_hand(player_id)
 
         {:ok, game, player}
       end
@@ -94,5 +100,9 @@ defmodule Crazy8.Game do
 
   def get_player_index(game, player_id) do
     Enum.find_index(game.players, fn player -> player.id == player_id end)
+  end
+
+  def is_player_host?(game, player_id) do
+    player_id == game.host_id
   end
 end

@@ -29,12 +29,12 @@ defmodule Crazy8Web.LobbyLive do
   end
 
   def generate_code() do
-    "abcd"
+    ?a..?z |> Enum.take_random(4) |> List.to_string() |> String.upcase()
   end
 
   def handle_event("create-game", _fields, socket) do
     code = generate_code()
-    {:noreply, push_navigate(socket, to: ~p"/game/#{code}")}
+    {:noreply, push_navigate(socket, to: ~p"/game/#{code}?name=#{socket.assigns.name}")}
   end
 
   def handle_event("update", fields, socket) do
@@ -56,7 +56,7 @@ defmodule Crazy8Web.LobbyLive do
     {:ok,
      assign(socket,
        code: "",
-       name: "",
+       name: "jack",
        error: nil,
        dev: Application.fetch_env!(:crazy8, :dev)
      )}
