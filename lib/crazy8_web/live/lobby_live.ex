@@ -12,14 +12,14 @@ defmodule Crazy8Web.LobbyLive do
         <.input name="name" placeholder="your username" type="text" value={@name} />
         <.button type="submit">join</.button>
       </form>
-
+      
       <%= if @error do %>
         <p class="text-center text-red-500"><%= @error %></p>
       <% end %>
-
+      
       <%= if @dev do %>
-        <hr class="w-full" />
         <p>dev menu</p>
+        
         <form phx-submit="create-game" class="flex flex-col gap-2">
           <.button type="submit">create game</.button>
         </form>

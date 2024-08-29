@@ -53,7 +53,7 @@ defmodule Crazy8.Game do
         game
         |> Map.put(:deck, deck)
         |> Map.put(:players, List.replace_at(game.players, player_index, player))
-        |> new_message("player #{player_id} dealt hand")
+        |> new_message("player #{player.name} dealt hand")
 
       {:ok, game}
     else

@@ -68,24 +68,40 @@ defmodule Crazy8Web.GameLive do
 
   def render(assigns) do
     ~H"""
-    <div>
-      <%= if @player do %>
+    <div class="flex flex-col gap-8">
+      <div class="border-y p-2">
         <div class="flex flex-wrap justify-center">
-          <%= for card <- @player.hand do %>
-            <img src={Card.art_url(card)} class="p-4" />
+          <p>State: <%= @game.state %></p>
+        </div>
+      </div>
+      
+      <div class="border-y">
+        <%= if @player do %>
+          <div class="flex flex-wrap justify-center">
+            <%= for card <- @player.hand do %>
+              <img src={Card.art_url(card)} class="p-4" />
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+      
+      <div class="flex flex-col border-y p-2 h-32 overflow-y-auto">
+        <ul class="list-none">
+          <%= for message <- @game.messages do %>
+            <li><%= message %></li>
           <% end %>
+        </ul>
+      </div>
+      
+      <%= if @debug do %>
+        <div class="bg-black text-white p-4 mb-2">
+          <p>player</p>
+           <code><pre><%= Jason.encode!(@player, pretty: true) %></pre></code>
+          <p>game</p>
+           <code><pre><%= Jason.encode!(@game, pretty: true) %></pre></code>
         </div>
       <% end %>
     </div>
-
-    <%= if @debug do %>
-      <div class="bg-black text-white p-4 mb-2">
-        <p>player</p>
-         <code><pre><%= Jason.encode!(@player, pretty: true) %></pre></code>
-        <p>game</p>
-         <code><pre><%= Jason.encode!(@game, pretty: true) %></pre></code>
-      </div>
-    <% end %>
     """
   end
 
