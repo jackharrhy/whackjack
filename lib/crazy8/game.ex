@@ -8,7 +8,8 @@ defmodule Crazy8.Game do
             state: :setup,
             players: [],
             deck: nil,
-            host_id: nil
+            host_id: nil,
+            turn: nil
 
   @max_players 4
 
@@ -108,7 +109,9 @@ defmodule Crazy8.Game do
          :ok <- is_game_in_state(game, :setup),
          :ok <- more_than_one_player(game),
          game <- put_game_into_state(game, :playing) do
-      game = game |> deal_hands()
+      random_player_id = Enum.random(game.players) |> Map.get(:id)
+      game = game |> deal_hands() |> Map.put(:turn, random_player_id)
+
       {:ok, game}
     end
   end
@@ -116,6 +119,7 @@ defmodule Crazy8.Game do
   def play_card(game, player_id, card_index) do
     with :ok <- is_game_in_state(game, :playing),
          {:ok, player} <- get_player_by_id(game, player_id),
+         :ok <- is_player_turn(game, player_id),
          {:ok, card} <- get_card_by_index(player, card_index) do
       game = game |> new_message("player #{player.name} played card #{card}")
 
@@ -177,5 +181,17 @@ defmodule Crazy8.Game do
 
   def is_player_host?(game, player_id) do
     player_id == game.host_id
+  end
+
+  def is_player_turn(game, player_id) do
+    if is_players_turn?(game, player_id) do
+      :ok
+    else
+      {:error, :not_players_turn}
+    end
+  end
+
+  def is_players_turn?(game, player_id) do
+    player_id == game.turn
   end
 end
