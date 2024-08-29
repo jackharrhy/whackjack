@@ -70,20 +70,20 @@ defmodule Crazy8Web.GameLive do
     ~H"""
     <div>
       <%= if @player do %>
-        <%= for card <- @player.hand do %>
-          <div class="bg-white p-2 rounded-md">
-            <img src={Card.art_url(card)} />
-          </div>
-        <% end %>
+        <div class="flex flex-wrap justify-center">
+          <%= for card <- @player.hand do %>
+            <img src={Card.art_url(card)} class="p-4" />
+          <% end %>
+        </div>
       <% end %>
     </div>
 
     <%= if @debug do %>
       <div class="bg-black text-white p-4 mb-2">
         <p>player</p>
-        <code><pre><%= Jason.encode!(@player, pretty: true) %></pre></code>
+         <code><pre><%= Jason.encode!(@player, pretty: true) %></pre></code>
         <p>game</p>
-        <code><pre><%= Jason.encode!(@game, pretty: true) %></pre></code>
+         <code><pre><%= Jason.encode!(@game, pretty: true) %></pre></code>
       </div>
     <% end %>
     """

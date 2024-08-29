@@ -32,6 +32,16 @@ defmodule Crazy8.Card do
     })
   end
 
+  defp value_to_art(value) do
+    case value do
+      1 -> "A"
+      11 -> "J"
+      12 -> "Q"
+      13 -> "K"
+      _ -> value
+    end
+  end
+
   defp generate_art(suit, value) do
     suit_art =
       case suit do
@@ -41,20 +51,15 @@ defmodule Crazy8.Card do
         :spades -> "♠"
       end
 
-    value_art =
-      case value do
-        1 -> "A"
-        11 -> "J"
-        12 -> "Q"
-        13 -> "K"
-        _ -> value
-      end
+    value_art = value_to_art(value)
 
     "#{suit_art} #{value_art}"
   end
 
   def art_url(card) do
-    "/images/Cards/cardDiamonds2.png"
+    suit = String.capitalize(Atom.to_string(card.suit))
+    value = value_to_art(card.value)
+    "/images/Cards/card#{suit}#{value}.png"
   end
 end
 
