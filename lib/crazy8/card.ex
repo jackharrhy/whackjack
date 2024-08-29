@@ -52,6 +52,10 @@ defmodule Crazy8.Card do
 
     "#{suit_art} #{value_art}"
   end
+
+  def art_url(card) do
+    "/images/Cards/cardDiamonds2.png"
+  end
 end
 
 defimpl String.Chars, for: Crazy8.Card do

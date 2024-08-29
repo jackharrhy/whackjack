@@ -4,6 +4,7 @@ defmodule Crazy8Web.GameLive do
   alias Crazy8.Game
   alias Crazy8.GameServer
   alias Crazy8.GameSupervisor
+  alias Crazy8.Card
 
   require Logger
 
@@ -48,8 +49,10 @@ defmodule Crazy8Web.GameLive do
         can_join = is_nil(socket.assigns.player) && !is_nil(name)
 
         if can_join && auto_join do
+          Logger.debug("Adding self to game #{code}")
           add_self_to_game(socket)
         else
+          Logger.debug("Not adding self to game #{code}")
           socket
         end
       else
@@ -66,15 +69,21 @@ defmodule Crazy8Web.GameLive do
   def render(assigns) do
     ~H"""
     <div>
-      <p>game</p>
+      <%= if @player do %>
+        <%= for card <- @player.hand do %>
+          <div class="bg-white p-2 rounded-md">
+            <img src={Card.art_url(card)} />
+          </div>
+        <% end %>
+      <% end %>
     </div>
 
     <%= if @debug do %>
       <div class="bg-black text-white p-4 mb-2">
         <p>player</p>
-         <code><pre><%= Jason.encode!(@player, pretty: true) %></pre></code>
+        <code><pre><%= Jason.encode!(@player, pretty: true) %></pre></code>
         <p>game</p>
-         <code><pre><%= Jason.encode!(@game, pretty: true) %></pre></code>
+        <code><pre><%= Jason.encode!(@game, pretty: true) %></pre></code>
       </div>
     <% end %>
     """

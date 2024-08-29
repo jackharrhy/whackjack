@@ -3,36 +3,37 @@ defmodule Crazy8.Player do
   defstruct [
     :id,
     :name,
-    :index,
-    :art
+    :art,
+    :hand
   ]
 
   @art [
-    {:text, "🧑‍🌾"},
-    {:text, "🐸"},
-    {:text, "🐵"},
-    {:text, "🐀"},
-    {:text, "🪿"},
-    {:text, "🐢"},
-    {:text, "🐌"},
-    {:text, "🐞"},
-    {:text, "🐱"},
-    {:text, "🐶"}
+    "🧑‍🌾",
+    "🐸",
+    "🐵",
+    "🐀",
+    "🪿",
+    "🐢",
+    "🐌",
+    "🐞",
+    "🐱",
+    "🐶"
   ]
 
-  def new(id, name) do
+  def new(id, name, hand) do
     random_art = Enum.random(@art)
 
     struct!(__MODULE__, %{
       id: id,
       name: name,
-      art: random_art
+      art: random_art,
+      hand: hand
     })
   end
 end
 
 defimpl String.Chars, for: Crazy8.Player do
   def to_string(player) do
-    "#{player.name} #{player.art |> elem(1)}"
+    "#{player.name} #{player.art}"
   end
 end

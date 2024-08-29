@@ -20,6 +20,20 @@ defmodule Crazy8.Deck do
       cards: cards
     })
   end
+
+  def shuffle(deck) do
+    cards = Enum.shuffle(deck.cards)
+    Map.put(deck, :cards, cards)
+  end
+
+  def deal_hand(deck, hand_size) do
+    if hand_size > length(deck.cards) do
+      {:error, :not_enough_cards}
+    end
+
+    {hand, cards} = Enum.split(deck.cards, hand_size)
+    {Map.put(deck, :cards, cards), hand}
+  end
 end
 
 defimpl String.Chars, for: Crazy8.Deck do

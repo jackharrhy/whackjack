@@ -12,7 +12,7 @@ defmodule Crazy8.Game do
   @max_players 4
 
   def new(code) do
-    deck = Deck.new()
+    deck = Deck.new() |> Deck.shuffle()
 
     struct!(
       __MODULE__,
@@ -32,17 +32,48 @@ defmodule Crazy8.Game do
     game |> Map.put(:messages, [message | game.messages])
   end
 
+  def hand_size(game) do
+    if length(game.players) == 2 do
+      7
+    else
+      5
+    end
+  end
+
+  def deal_hand(game, player_id) do
+    {:ok, player} = get_player_by_id(game, player_id)
+
+    if player do
+      {deck, hand} = Deck.deal_hand(game.deck, hand_size(game))
+
+      player = player |> Map.put(:hand, hand)
+      player_index = get_player_index(game, player_id)
+
+      game =
+        game
+        |> Map.put(:deck, deck)
+        |> Map.put(:players, List.replace_at(game.players, player_index, player))
+        |> new_message("player #{player_id} dealt hand")
+
+      {:ok, game}
+    else
+      {:error, :player_not_found}
+    end
+  end
+
   def add_player(game, player_id, player_name) do
     if game.state == :setup do
       if length(game.players) >= @max_players do
         {:error, :game_full}
       else
-        player = Player.new(player_id, player_name)
+        player = Player.new(player_id, player_name, [])
 
         game =
           game
           |> Map.put(:players, game.players ++ [player])
           |> new_message("player #{player} joined")
+
+        {:ok, game} = game |> deal_hand(player_id)
 
         {:ok, game, player}
       end
@@ -59,5 +90,9 @@ defmodule Crazy8.Game do
     else
       {:error, :player_not_found}
     end
+  end
+
+  def get_player_index(game, player_id) do
+    Enum.find_index(game.players, fn player -> player.id == player_id end)
   end
 end
