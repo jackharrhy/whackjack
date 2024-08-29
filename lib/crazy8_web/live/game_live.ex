@@ -202,6 +202,10 @@ defmodule Crazy8Web.GameLive do
     end
   end
 
+  def handle_info({:clear_flash, level}, socket) do
+    {:noreply, clear_flash(socket, Atom.to_string(level))}
+  end
+
   defp put_temporary_flash(socket, level, message) do
     :timer.send_after(:timer.seconds(3), {:clear_flash, level})
 
