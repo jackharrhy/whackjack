@@ -22,6 +22,10 @@ defmodule Crazy8.GameServer do
   def add_player(code, player_id, player_name),
     do: call_by_code(code, {:add_player, player_id, player_name})
 
+  def start_game(code, player_id) do
+    call_by_code(code, {:start_game, player_id})
+  end
+
   def broadcast!(code, event, payload \\ %{}) do
     Phoenix.PubSub.broadcast!(Crazy8.PubSub, code, %{event: event, payload: payload})
   end
@@ -49,6 +53,20 @@ defmodule Crazy8.GameServer do
   @impl GenServer
   def handle_call({:get_player_by_id, player_id}, _from, state) do
     {:reply, Game.get_player_by_id(state.game, player_id), state}
+  end
+
+  @impl GenServer
+  def handle_call({:start_game, player_id}, _from, state) do
+    Logger.debug("Starting game #{state.game.code}")
+
+    case Game.start_game(state.game, player_id) do
+      {:ok, game} ->
+        broadcast_game_updated!(game.code, game)
+        {:reply, {:ok, game}, %{state | game: game}}
+
+      {:error, _} = error ->
+        {:reply, error, state}
+    end
   end
 
   @impl GenServer

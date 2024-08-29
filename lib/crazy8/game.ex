@@ -62,6 +62,19 @@ defmodule Crazy8.Game do
     end
   end
 
+  def deal_hands(game) do
+    Enum.reduce(game.players, game, fn player, game ->
+      {deck, hand} = Deck.deal_hand(game.deck, hand_size(game))
+      player = %{player | hand: hand}
+      player_index = get_player_index(game, player.id)
+
+      game
+      |> Map.put(:deck, deck)
+      |> Map.put(:players, List.replace_at(game.players, player_index, player))
+      |> new_message("Dealt hand to #{player.name}")
+    end)
+  end
+
   def add_player(game, player_id, player_name) do
     if game.state == :setup do
       if length(game.players) >= @max_players do
@@ -88,6 +101,16 @@ defmodule Crazy8.Game do
     end
   end
 
+  def start_game(game, player_id) do
+    with :ok <- is_player_host(game, player_id),
+         :ok <- is_game_in_state(game, :setup),
+         :ok <- more_than_one_player(game),
+         game <- put_game_into_state(game, :playing) do
+      game = game |> deal_hands()
+      {:ok, game}
+    end
+  end
+
   def get_player_by_id(game, player_id) do
     player = Enum.find(game.players, fn player -> player.id == player_id end)
 
@@ -98,8 +121,36 @@ defmodule Crazy8.Game do
     end
   end
 
+  def is_game_in_state(game, state) do
+    if game.state == state do
+      :ok
+    else
+      {:error, :game_not_in_state}
+    end
+  end
+
   def get_player_index(game, player_id) do
     Enum.find_index(game.players, fn player -> player.id == player_id end)
+  end
+
+  def more_than_one_player(game) do
+    if more_than_one_player?(game) do
+      :ok
+    else
+      {:error, :not_enough_players}
+    end
+  end
+
+  def more_than_one_player?(game) do
+    length(game.players) > 1
+  end
+
+  def is_player_host(game, player_id) do
+    if is_player_host?(game, player_id) do
+      :ok
+    else
+      {:error, :not_host}
+    end
   end
 
   def is_player_host?(game, player_id) do

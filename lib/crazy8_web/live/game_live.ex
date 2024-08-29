@@ -66,6 +66,18 @@ defmodule Crazy8Web.GameLive do
     {:ok, redirect(socket, to: "/setup?return_to=/game/#{code}")}
   end
 
+  def handle_event("start-game", _, socket) do
+    %{player: player, game: game} = socket.assigns
+
+    case GameServer.start_game(game.code, player.id) do
+      {:ok, game} ->
+        {:noreply, assign(socket, game: game)}
+
+      {:error, reason} ->
+        {:noreply, put_temporary_flash(socket, :error, "#{reason}")}
+    end
+  end
+
   def render(assigns) do
     ~H"""
     <div class="flex flex-col gap-8">
@@ -73,16 +85,14 @@ defmodule Crazy8Web.GameLive do
         <div class="flex flex-wrap justify-center items-center gap-4">
           <p>State: <%= @game.state %></p>
           
-          <%= if @player do %>
-            <%= if Game.is_player_host?(@game, @player.id) do %>
-              <p>Host</p>
-            <% end %>
+          <%= if !is_nil(@player) and @game.state == :setup and Game.is_player_host?(@game, @player.id) do %>
+            <.button phx-click="start-game">Start Game</.button>
           <% end %>
           
           <div class="flex flex-wrap justify-center items-center gap-2">
             <%= for player <- @game.players do %>
               <div class={
-                if player.id == @player.id,
+                if !is_nil(@player) and player.id == @player.id,
                   do: "bg-red-100 text-red-900 px-3 py-1 rounded-sm border border-red-300",
                   else: "bg-blue-100 text-blue-900 px-3 py-1 rounded-sm border border-blue-300"
               }>
