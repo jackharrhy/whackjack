@@ -78,6 +78,20 @@ defmodule Crazy8Web.GameLive do
     end
   end
 
+  def handle_event("play-card", %{"card-index" => card_index}, socket) do
+    %{player: player, game: game} = socket.assigns
+
+    card_index = String.to_integer(card_index)
+
+    case GameServer.play_card(game.code, player.id, card_index) do
+      {:ok, game} ->
+        {:noreply, assign(socket, game: game)}
+
+      {:error, reason} ->
+        {:noreply, put_temporary_flash(socket, :error, "#{reason}")}
+    end
+  end
+
   def render(assigns) do
     ~H"""
     <div class="flex flex-col gap-8">
@@ -109,8 +123,17 @@ defmodule Crazy8Web.GameLive do
       <div class="border-y">
         <%= if @player do %>
           <div class="flex flex-wrap justify-center items-center min-h-16">
-            <%= for card <- @player.hand do %>
-              <img src={Card.art_url(card)} class="p-4" />
+            <%= for {card, index} <- Enum.with_index(@player.hand) do %>
+              <button
+                phx-click="play-card"
+                phx-value-card-index={index}
+                class="p-0 bg-transparent border-none"
+              >
+                <img
+                  src={Card.art_url(card)}
+                  class="p-4 hover:scale-105 transition-transform duration-150"
+                />
+              </button>
             <% end %>
             
             <%= if Enum.empty?(@player.hand) do %>

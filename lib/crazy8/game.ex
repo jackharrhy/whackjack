@@ -68,6 +68,8 @@ defmodule Crazy8.Game do
       player = %{player | hand: hand}
       player_index = get_player_index(game, player.id)
 
+      # TODO deal out the hands to each player with a delay
+
       game
       |> Map.put(:deck, deck)
       |> Map.put(:players, List.replace_at(game.players, player_index, player))
@@ -111,6 +113,16 @@ defmodule Crazy8.Game do
     end
   end
 
+  def play_card(game, player_id, card_index) do
+    with :ok <- is_game_in_state(game, :playing),
+         {:ok, player} <- get_player_by_id(game, player_id),
+         {:ok, card} <- get_card_by_index(player, card_index) do
+      game = game |> new_message("player #{player.name} played card #{card}")
+
+      {:ok, game}
+    end
+  end
+
   def get_player_by_id(game, player_id) do
     player = Enum.find(game.players, fn player -> player.id == player_id end)
 
@@ -131,6 +143,16 @@ defmodule Crazy8.Game do
 
   def get_player_index(game, player_id) do
     Enum.find_index(game.players, fn player -> player.id == player_id end)
+  end
+
+  def get_card_by_index(player, card_index) do
+    card = Enum.at(player.hand, card_index)
+
+    if card do
+      {:ok, card}
+    else
+      {:error, :card_not_found}
+    end
   end
 
   def more_than_one_player(game) do
