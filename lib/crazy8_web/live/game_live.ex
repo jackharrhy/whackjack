@@ -115,7 +115,7 @@ defmodule Crazy8Web.GameLive do
                 <% end %>
                 
                 <%= if @game.state == :playing and Game.is_players_turn?(@game, player.id) do %>
-                  <span class="text-2xl">➡️</span>
+                  🡒
                 <% end %>
                  <%= player.name %> <%= player.art %>
               </div>
