@@ -34,4 +34,15 @@ defmodule Crazy8.GameSupervisor do
         :ok
     end
   end
+
+  def stop_all_games do
+    Logger.info("Stopping all game servers")
+
+    DynamicSupervisor.which_children(__MODULE__)
+    |> Enum.each(fn {_, pid, _, _} ->
+      DynamicSupervisor.terminate_child(__MODULE__, pid)
+    end)
+
+    :ok
+  end
 end

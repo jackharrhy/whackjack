@@ -1,6 +1,7 @@
 defmodule Crazy8.Game do
   alias Crazy8.Player
   alias Crazy8.Deck
+  require Logger
 
   @derive Jason.Encoder
   defstruct messages: [],
@@ -9,12 +10,27 @@ defmodule Crazy8.Game do
             players: [],
             deck: nil,
             host_id: nil,
-            turn: nil
+            turn: nil,
+            pile: [],
+            discard: []
 
   @max_players 4
 
+  @type t :: %__MODULE__{
+          messages: [String.t()],
+          code: String.t() | nil,
+          state: :setup | :playing,
+          players: [Player.t()],
+          deck: Deck.cards() | nil,
+          host_id: String.t() | nil,
+          turn: String.t() | nil,
+          pile: [Deck.cards()],
+          discard: [Deck.cards()]
+        }
+
+  @spec new(String.t()) :: t()
   def new(code) do
-    deck = Deck.new() |> Deck.shuffle()
+    deck = Deck.fresh_deck() |> Deck.shuffle()
 
     struct!(
       __MODULE__,
@@ -26,14 +42,17 @@ defmodule Crazy8.Game do
     )
   end
 
+  @spec put_game_into_state(t(), :setup | :playing) :: t()
   def put_game_into_state(game, state) do
     Map.put(game, :state, state)
   end
 
+  @spec new_message(t(), String.t()) :: t()
   def new_message(game, message) do
     game |> Map.put(:messages, [message | game.messages])
   end
 
+  @spec hand_size(t()) :: non_neg_integer()
   def hand_size(game) do
     if length(game.players) == 2 do
       7
@@ -42,13 +61,11 @@ defmodule Crazy8.Game do
     end
   end
 
+  @spec deal_hand(t(), String.t()) :: {:ok, t()} | {:error, atom()}
   def deal_hand(game, player_id) do
-    {:ok, player} = get_player_by_id(game, player_id)
-
-    if player do
-      {deck, hand} = Deck.deal_hand(game.deck, hand_size(game))
-
-      player = player |> Map.put(:hand, hand)
+    with {:ok, player} <- get_player_by_id(game, player_id),
+         {:ok, {deck, hand}} <- Deck.deal_hand(game.deck, hand_size(game)) do
+      player = %{player | hand: hand}
       player_index = get_player_index(game, player_id)
 
       game =
@@ -58,26 +75,27 @@ defmodule Crazy8.Game do
         |> new_message("player #{player.name} dealt hand")
 
       {:ok, game}
-    else
-      {:error, :player_not_found}
     end
   end
 
+  @spec deal_hands(t()) :: t()
   def deal_hands(game) do
     Enum.reduce(game.players, game, fn player, game ->
-      {deck, hand} = Deck.deal_hand(game.deck, hand_size(game))
+      {:ok, {hand, deck}} = Deck.deal_hand(game.deck, hand_size(game))
       player = %{player | hand: hand}
       player_index = get_player_index(game, player.id)
 
-      # TODO deal out the hands to each player with a delay
+      Logger.debug("Dealt #{length(hand)} cards to #{player.name}")
 
       game
       |> Map.put(:deck, deck)
       |> Map.put(:players, List.replace_at(game.players, player_index, player))
-      |> new_message("Dealt hand to #{player.name}")
+      |> new_message("dealt hand to #{player.name}")
     end)
   end
 
+  @spec add_player(t(), String.t(), String.t()) ::
+          {:ok, t(), Player.t()} | {:error, atom()}
   def add_player(game, player_id, player_name) do
     if game.state == :setup do
       if length(game.players) >= @max_players do
@@ -104,6 +122,7 @@ defmodule Crazy8.Game do
     end
   end
 
+  @spec start_game(t(), String.t()) :: {:ok, t()} | {:error, atom()}
   def start_game(game, player_id) do
     with :ok <- is_player_host(game, player_id),
          :ok <- is_game_in_state(game, :setup),
@@ -116,6 +135,7 @@ defmodule Crazy8.Game do
     end
   end
 
+  @spec play_card(t(), String.t(), non_neg_integer()) :: {:ok, t()} | {:error, atom()}
   def play_card(game, player_id, card_index) do
     with :ok <- is_game_in_state(game, :playing),
          {:ok, player} <- get_player_by_id(game, player_id),
@@ -127,6 +147,7 @@ defmodule Crazy8.Game do
     end
   end
 
+  @spec get_player_by_id(t(), String.t()) :: {:ok, Player.t()} | {:error, atom()}
   def get_player_by_id(game, player_id) do
     player = Enum.find(game.players, fn player -> player.id == player_id end)
 
@@ -137,6 +158,7 @@ defmodule Crazy8.Game do
     end
   end
 
+  @spec is_game_in_state(t(), :setup | :playing) :: :ok | {:error, atom()}
   def is_game_in_state(game, state) do
     if game.state == state do
       :ok
@@ -145,10 +167,13 @@ defmodule Crazy8.Game do
     end
   end
 
+  @spec get_player_index(t(), String.t()) :: non_neg_integer() | nil
   def get_player_index(game, player_id) do
     Enum.find_index(game.players, fn player -> player.id == player_id end)
   end
 
+  @spec get_card_by_index(Player.t(), non_neg_integer()) ::
+          {:ok, Deck.cards()} | {:error, atom()}
   def get_card_by_index(player, card_index) do
     card = Enum.at(player.hand, card_index)
 
@@ -159,6 +184,7 @@ defmodule Crazy8.Game do
     end
   end
 
+  @spec more_than_one_player(t()) :: :ok | {:error, atom()}
   def more_than_one_player(game) do
     if more_than_one_player?(game) do
       :ok
@@ -167,10 +193,12 @@ defmodule Crazy8.Game do
     end
   end
 
+  @spec more_than_one_player?(t()) :: boolean()
   def more_than_one_player?(game) do
     length(game.players) > 1
   end
 
+  @spec is_player_host(t(), String.t()) :: :ok | {:error, atom()}
   def is_player_host(game, player_id) do
     if is_player_host?(game, player_id) do
       :ok
@@ -179,10 +207,12 @@ defmodule Crazy8.Game do
     end
   end
 
+  @spec is_player_host?(t(), String.t()) :: boolean()
   def is_player_host?(game, player_id) do
     player_id == game.host_id
   end
 
+  @spec is_player_turn(t(), String.t()) :: :ok | {:error, atom()}
   def is_player_turn(game, player_id) do
     if is_players_turn?(game, player_id) do
       :ok
@@ -191,6 +221,7 @@ defmodule Crazy8.Game do
     end
   end
 
+  @spec is_players_turn?(t(), String.t()) :: boolean()
   def is_players_turn?(game, player_id) do
     player_id == game.turn
   end

@@ -7,6 +7,13 @@ defmodule Crazy8.Player do
     :hand
   ]
 
+  @type t :: %__MODULE__{
+          id: String.t(),
+          name: String.t(),
+          art: String.t(),
+          hand: list()
+        }
+
   @art [
     "🐸",
     "🐵",
@@ -18,6 +25,7 @@ defmodule Crazy8.Player do
     "🐶"
   ]
 
+  @spec new(String.t(), String.t(), list()) :: t()
   def new(id, name, hand) do
     random_art = Enum.random(@art)
 

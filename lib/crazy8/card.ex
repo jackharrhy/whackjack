@@ -3,26 +3,31 @@ defmodule Crazy8.Card do
   @values [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
   @types [:number, :face]
 
+  @spec suits() :: [atom()]
   def suits do
     @suits
   end
 
+  @spec values() :: [integer()]
   def values do
     @values
   end
 
+  @spec types() :: [atom()]
   def types do
     @types
   end
 
   @derive Jason.Encoder
-  defstruct [
-    :suit,
-    :value,
-    :type,
-    :art
-  ]
+  @type t :: %__MODULE__{
+          suit: atom(),
+          value: integer(),
+          type: :face | :number,
+          art: String.t()
+        }
+  defstruct [:suit, :value, :type, :art]
 
+  @spec new(atom(), integer(), atom()) :: t()
   def new(suit, value, type) do
     struct!(__MODULE__, %{
       suit: suit,
@@ -32,6 +37,7 @@ defmodule Crazy8.Card do
     })
   end
 
+  @spec value_to_art(integer()) :: String.t() | integer()
   defp value_to_art(value) do
     case value do
       1 -> "A"
@@ -42,6 +48,7 @@ defmodule Crazy8.Card do
     end
   end
 
+  @spec generate_art(atom(), integer()) :: String.t()
   defp generate_art(suit, value) do
     suit_art =
       case suit do
@@ -56,6 +63,7 @@ defmodule Crazy8.Card do
     "#{suit_art} #{value_art}"
   end
 
+  @spec art_url(t()) :: String.t()
   def art_url(card) do
     suit = String.capitalize(Atom.to_string(card.suit))
     value = value_to_art(card.value)
