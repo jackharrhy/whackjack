@@ -20,13 +20,21 @@ defmodule Crazy8.Deck do
   end
 
   @spec deal_hand(cards(), non_neg_integer()) ::
-          {:ok, {cards(), cards()}} | {:error, :not_enough_cards}
+          {:ok, {cards(), cards()}} | {:error, atom()}
   def deal_hand(deck, hand_size) do
     if hand_size > length(deck) do
       {:error, :not_enough_cards}
     else
       {hand, remaining_deck} = Enum.split(deck, hand_size)
       {:ok, {hand, remaining_deck}}
+    end
+  end
+
+  @spec draw_card(cards()) :: {:ok, {Card.t(), cards()}} | {:error, atom()}
+  def draw_card(deck) do
+    case deck do
+      [] -> {:error, :not_enough_cards}
+      [card | rest] -> {:ok, {card, rest}}
     end
   end
 end

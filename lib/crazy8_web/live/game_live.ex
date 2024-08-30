@@ -92,6 +92,18 @@ defmodule Crazy8Web.GameLive do
     end
   end
 
+  def handle_event("draw-card", _, socket) do
+    %{player: player, game: game} = socket.assigns
+
+    case GameServer.draw_card(game.code, player.id) do
+      {:ok, game} ->
+        {:noreply, assign(socket, game: game)}
+
+      {:error, reason} ->
+        {:noreply, put_temporary_flash(socket, :error, "#{reason}")}
+    end
+  end
+
   def render(assigns) do
     ~H"""
     <div class="flex flex-col gap-8">
@@ -147,6 +159,15 @@ defmodule Crazy8Web.GameLive do
                   src={Card.art_url(card)}
                   class="p-4 hover:scale-105 transition-transform duration-150"
                 />
+              </button>
+            <% end %>
+            
+            <%= if @game.state == :playing and @player && Game.is_players_turn?(@game, @player.id) do %>
+              <button
+                phx-click="draw-card"
+                class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded ml-4"
+              >
+                Draw Card
               </button>
             <% end %>
             

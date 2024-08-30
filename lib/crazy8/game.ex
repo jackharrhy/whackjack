@@ -177,6 +177,27 @@ defmodule Crazy8.Game do
     end
   end
 
+  @spec draw_card(t(), String.t()) :: {:ok, t()} | {:error, atom()}
+  def draw_card(game, player_id) do
+    with :ok <- is_game_in_state(game, :playing),
+         {:ok, player} <- get_player_by_id(game, player_id),
+         :ok <- is_player_turn(game, player_id),
+         {:ok, {card, deck}} <- Deck.draw_card(game.deck) do
+      player = %{player | hand: player.hand ++ [card]}
+
+      game =
+        game
+        |> Map.put(:deck, deck)
+        |> Map.put(
+          :players,
+          List.replace_at(game.players, get_player_index(game, player_id), player)
+        )
+        |> new_message("player #{player} drew card")
+
+      {:ok, game}
+    end
+  end
+
   @spec get_player_by_id(t(), String.t()) :: {:ok, Player.t()} | {:error, atom()}
   def get_player_by_id(game, player_id) do
     player = Enum.find(game.players, fn player -> player.id == player_id end)
