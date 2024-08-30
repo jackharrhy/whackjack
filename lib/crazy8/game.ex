@@ -131,6 +131,13 @@ defmodule Crazy8.Game do
       random_player_id = Enum.random(game.players) |> Map.get(:id)
       game = game |> deal_hands() |> Map.put(:turn, random_player_id)
 
+      {top_card, deck} = List.pop_at(game.deck, 0)
+
+      game =
+        game
+        |> Map.put(:deck, deck)
+        |> Map.put(:pile, [top_card])
+
       {:ok, game}
     end
   end

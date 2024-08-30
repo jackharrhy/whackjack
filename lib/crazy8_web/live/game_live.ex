@@ -124,6 +124,16 @@ defmodule Crazy8Web.GameLive do
         </div>
       </div>
       
+      <%= if @game.state == :playing do %>
+        <div class="border-y">
+          <div class="flex flex-wrap justify-center items-center min-h-16">
+            <div class="flex flex-col items-center">
+              <img src={Card.art_url(hd(@game.pile))} class="p-4" />
+            </div>
+          </div>
+        </div>
+      <% end %>
+      
       <div class="border-y">
         <%= if @player do %>
           <div class="flex flex-wrap justify-center items-center min-h-16">
