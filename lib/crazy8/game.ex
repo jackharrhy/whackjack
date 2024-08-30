@@ -17,10 +17,12 @@ defmodule Crazy8.Game do
 
   @max_players 4
 
+  @type game_state :: :setup | :playing | :game_over
+
   @type t :: %__MODULE__{
           messages: [String.t()],
           code: String.t() | nil,
-          state: :setup | :playing,
+          state: game_state,
           players: [Player.t()],
           deck: Deck.cards() | nil,
           host_id: String.t() | nil,
@@ -43,7 +45,7 @@ defmodule Crazy8.Game do
     )
   end
 
-  @spec put_game_into_state(t(), :setup | :playing) :: t()
+  @spec put_game_into_state(t(), game_state) :: t()
   def put_game_into_state(game, state) do
     Map.put(game, :state, state)
   end
@@ -163,17 +165,23 @@ defmodule Crazy8.Game do
 
       pile = [card | game.pile]
 
-      next_player_index = rem(get_player_index(game, player_id) + 1, length(game.players))
-      next_player = Enum.at(game.players, next_player_index)
+      if Enum.empty?(player.hand) do
+        game
+        |> put_game_into_state(:win)
+        |> Map.put(:winner, player_id)
+        |> Map.put(:players, players)
+        |> Map.put(:pile, pile)
+        |> new_message("#{player} has won the game!")
+      else
+        next_player_index = rem(get_player_index(game, player_id) + 1, length(game.players))
+        next_player = Enum.at(game.players, next_player_index)
 
-      game =
         game
         |> Map.put(:turn, next_player.id)
         |> Map.put(:players, players)
         |> Map.put(:pile, pile)
         |> new_message("it's now #{next_player}'s turn")
-
-      {:ok, game}
+      end
     end
   end
 
@@ -209,7 +217,7 @@ defmodule Crazy8.Game do
     end
   end
 
-  @spec is_game_in_state(t(), :setup | :playing) :: :ok | {:error, atom()}
+  @spec is_game_in_state(t(), game_state) :: :ok | {:error, atom()}
   def is_game_in_state(game, state) do
     if game.state == state do
       :ok
