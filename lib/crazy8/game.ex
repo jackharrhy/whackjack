@@ -1,6 +1,7 @@
 defmodule Crazy8.Game do
   alias Crazy8.Player
   alias Crazy8.Deck
+  alias Crazy8.Card
   require Logger
 
   @derive Jason.Encoder
@@ -72,7 +73,7 @@ defmodule Crazy8.Game do
         game
         |> Map.put(:deck, deck)
         |> Map.put(:players, List.replace_at(game.players, player_index, player))
-        |> new_message("player #{player.name} dealt hand")
+        |> new_message("player #{player} dealt hand")
 
       {:ok, game}
     end
@@ -85,12 +86,12 @@ defmodule Crazy8.Game do
       player = %{player | hand: hand}
       player_index = get_player_index(game, player.id)
 
-      Logger.debug("Dealt #{length(hand)} cards to #{player.name}")
+      Logger.debug("Dealt #{length(hand)} cards to #{player}")
 
       game
       |> Map.put(:deck, deck)
       |> Map.put(:players, List.replace_at(game.players, player_index, player))
-      |> new_message("dealt hand to #{player.name}")
+      |> new_message("dealt hand to #{player}")
     end)
   end
 
@@ -129,6 +130,7 @@ defmodule Crazy8.Game do
          :ok <- more_than_one_player(game),
          game <- put_game_into_state(game, :playing) do
       random_player_id = Enum.random(game.players) |> Map.get(:id)
+      player = get_player_by_id(game, random_player_id)
       game = game |> deal_hands() |> Map.put(:turn, random_player_id)
 
       {top_card, deck} = List.pop_at(game.deck, 0)
@@ -137,6 +139,7 @@ defmodule Crazy8.Game do
         game
         |> Map.put(:deck, deck)
         |> Map.put(:pile, [top_card])
+        |> new_message("game started, #{player} goes first, top card is #{top_card}")
 
       {:ok, game}
     end
@@ -147,8 +150,28 @@ defmodule Crazy8.Game do
     with :ok <- is_game_in_state(game, :playing),
          {:ok, player} <- get_player_by_id(game, player_id),
          :ok <- is_player_turn(game, player_id),
-         {:ok, card} <- get_card_by_index(player, card_index) do
-      game = game |> new_message("player #{player.name} played card #{card}")
+         {:ok, card} <- get_card_by_index(player, card_index),
+         :ok <- Card.can_play(card, hd(game.pile)) do
+      game = game |> new_message("player #{player} played card #{card}")
+
+      player = %{player | hand: List.delete_at(player.hand, card_index)}
+
+      players =
+        Enum.map(game.players, fn p ->
+          if p.id == player_id, do: player, else: p
+        end)
+
+      pile = [card | game.pile]
+
+      next_player_index = rem(get_player_index(game, player_id) + 1, length(game.players))
+      next_player = Enum.at(game.players, next_player_index)
+
+      game =
+        game
+        |> Map.put(:turn, next_player.id)
+        |> Map.put(:players, players)
+        |> Map.put(:pile, pile)
+        |> new_message("it's now #{next_player}'s turn")
 
       {:ok, game}
     end

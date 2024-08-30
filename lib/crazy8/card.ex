@@ -69,6 +69,22 @@ defmodule Crazy8.Card do
     value = value_to_art(card.value)
     "/images/Cards/card#{suit}#{value}.png"
   end
+
+  @spec can_play(t(), t()) :: :ok | {:error, atom()}
+  def can_play(card, top_card) do
+    if can_play?(card, top_card) do
+      :ok
+    else
+      {:error, :invalid_play}
+    end
+  end
+
+  @spec can_play?(t(), t()) :: boolean()
+  def can_play?(card, top_card) do
+    card.suit == top_card.suit or
+      card.value == top_card.value or
+      card.value == 8
+  end
 end
 
 defimpl String.Chars, for: Crazy8.Card do
