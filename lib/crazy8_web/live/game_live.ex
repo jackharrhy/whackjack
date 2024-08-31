@@ -110,11 +110,11 @@ defmodule Crazy8Web.GameLive do
       <div class="border-y p-2">
         <div class="flex flex-wrap justify-center items-center gap-4">
           <p>State: <%= @game.state %></p>
-          
+
           <%= if !is_nil(@player) and @game.state == :setup and Game.is_player_host?(@game, @player.id) do %>
             <.button phx-click="start-game">Start Game</.button>
           <% end %>
-          
+
           <div class="flex flex-wrap justify-center items-center gap-2">
             <%= for player <- @game.players do %>
               <div class={
@@ -125,17 +125,17 @@ defmodule Crazy8Web.GameLive do
                 <%= if @game.state == :setup and Game.is_player_host?(@game, player.id) do %>
                   👑
                 <% end %>
-                
+
                 <%= if @game.state == :playing and Game.is_players_turn?(@game, player.id) do %>
                   🡒
                 <% end %>
-                 <%= player.name %> <%= player.art %>
+                <%= player.name %> <%= player.art %>
               </div>
             <% end %>
           </div>
         </div>
       </div>
-      
+
       <%= if @game.state == :playing do %>
         <div class="border-y">
           <div class="flex flex-wrap justify-center items-center min-h-16">
@@ -145,7 +145,7 @@ defmodule Crazy8Web.GameLive do
           </div>
         </div>
       <% end %>
-      
+
       <div class="border-y">
         <%= if @player do %>
           <div class="flex flex-wrap justify-center items-center min-h-16">
@@ -161,7 +161,7 @@ defmodule Crazy8Web.GameLive do
                 />
               </button>
             <% end %>
-            
+
             <%= if @game.state == :playing and @player && Game.is_players_turn?(@game, @player.id) do %>
               <button
                 phx-click="draw-card"
@@ -170,14 +170,14 @@ defmodule Crazy8Web.GameLive do
                 Draw Card
               </button>
             <% end %>
-            
+
             <%= if Enum.empty?(@player.hand) do %>
               <p class="italic opacity-75">Empty hand</p>
             <% end %>
           </div>
         <% end %>
       </div>
-      
+
       <div class="flex flex-col border-y p-2 h-32 overflow-y-auto">
         <ul class="list-none">
           <%= for message <- @game.messages do %>
@@ -185,13 +185,13 @@ defmodule Crazy8Web.GameLive do
           <% end %>
         </ul>
       </div>
-      
+
       <%= if @debug do %>
         <div class="bg-black text-white p-4 mb-2">
           <p>player</p>
-           <code><pre><%= Jason.encode!(@player, pretty: true) %></pre></code>
+          <code><pre><%= Jason.encode!(@player, pretty: true) %></pre></code>
           <p>game</p>
-           <code><pre><%= Jason.encode!(@game, pretty: true) %></pre></code>
+          <code><pre><%= Jason.encode!(@game, pretty: true) %></pre></code>
         </div>
       <% end %>
     </div>

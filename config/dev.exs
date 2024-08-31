@@ -15,7 +15,7 @@ config :crazy8, Crazy8Web.Endpoint,
   debug_errors: true,
   secret_key_base: "0zZRdD9WJKgtHDr3sSRq7UHWrBeUnRzI0qVsG8wlLprCkvAWqbMGjZDE1inuk6i5",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:crazy8, ~w(--sourcemap=inline --watch)]},
+    node: ["build.js", "--watch", cd: Path.expand("../assets", __DIR__)],
     tailwind: {Tailwind, :install_and_run, [:crazy8, ~w(--watch)]}
   ]
 

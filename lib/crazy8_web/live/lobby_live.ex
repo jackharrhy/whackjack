@@ -4,27 +4,29 @@ defmodule Crazy8Web.LobbyLive do
   alias Crazy8.GameServer
 
   def render(assigns) do
-    ~H"""
+    ~V"""
+    <script>
+      export let dev = false
+
+      export let name = "jack"
+      export let code = ""
+    </script>
+
     <div class="flex items-center flex-col gap-6">
-      <form phx-change="update" phx-submit="join-game" phx-debounce="500" class="flex flex-col gap-2">
+      <form phx-change="update" phx-submit="join-game" class="flex flex-col gap-2">
         <label for="code">join game!</label>
-        <.input name="code" placeholder="game code" type="text" value={@code} />
-        <.input name="name" placeholder="your username" type="text" value={@name} />
-        <.button type="submit">join</.button>
+        <input name="code" placeholder="game code" type="text" bind:value={code} phx-debounce="500" />
+        <input name="name" placeholder="your username" type="text" bind:value={name} phx-debounce="500" />
+        <button type="submit">join</button>
       </form>
-      
-      <%= if @error do %>
-        <p class="text-center text-red-500"><%= @error %></p>
-      <% end %>
-      
-      <%= if @dev do %>
-        <p>dev menu</p>
-        
-        <form phx-submit="create-game" class="flex flex-col gap-2">
-          <.button type="submit">create game</.button>
-        </form>
-      <% end %>
     </div>
+
+    {#if dev}
+      <p>dev menu</p>
+      <form phx-submit="create-game" class="flex flex-col gap-2">
+        <button type="submit">create game</button>
+      </form>
+    {/if}
     """
   end
 

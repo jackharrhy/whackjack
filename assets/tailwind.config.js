@@ -9,7 +9,8 @@ module.exports = {
   content: [
     "./js/**/*.js",
     "../lib/crazy8_web.ex",
-    "../lib/crazy8_web/**/*.*ex"
+    "../lib/crazy8_web/**/*.*ex",
+    "./svelte/**/*.svelte"
   ],
   theme: {
     extend: {

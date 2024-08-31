@@ -55,7 +55,8 @@ defmodule Crazy8.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:nanoid, "~> 2.1.0"},
-      {:dialyxir, "~> 1.4", only: :dev, runtime: false}
+      {:dialyxir, "~> 1.4", only: :dev, runtime: false},
+      {:live_svelte, "~> 0.13.3"}
     ]
   end
 
@@ -72,7 +73,7 @@ defmodule Crazy8.MixProject do
       "assets.build": ["tailwind crazy8", "esbuild crazy8"],
       "assets.deploy": [
         "tailwind crazy8 --minify",
-        "esbuild crazy8 --minify",
+        "node build.js --deploy --prefix assets",
         "phx.digest"
       ]
     ]
