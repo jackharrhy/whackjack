@@ -28,7 +28,7 @@
 <div class="flex flex-col flex-wrap justify-center items-center p-4">
   {#if game.state === "setup"}
     {#if isPlayerHost}
-      {#if game.players.length > 1}
+      {#if game.players.length >= 4}
         <button
           on:click={() => startGame()}
           class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mb-4"

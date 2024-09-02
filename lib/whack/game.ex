@@ -9,7 +9,7 @@ defmodule Whack.Game do
             players: [],
             host: nil
 
-  @max_players 4
+  @max_players 8
 
   @type game_state :: :setup | :playing
 
@@ -76,7 +76,7 @@ defmodule Whack.Game do
   def start_game(game, player_id) do
     with :ok <- is_player_host(game, player_id),
          :ok <- is_game_in_state(game, :setup),
-         :ok <- more_than_one_player(game),
+         :ok <- max_players_reached(game),
          game <- put_game_into_state(game, :playing) do
       game = game |> new_message("game started")
 
@@ -109,18 +109,18 @@ defmodule Whack.Game do
     Enum.find_index(game.players, fn player -> player.id == player_id end)
   end
 
-  @spec more_than_one_player(t()) :: :ok | {:error, atom()}
-  def more_than_one_player(game) do
-    if more_than_one_player?(game) do
+  @spec max_players_reached(t()) :: :ok | {:error, atom()}
+  def max_players_reached(game) do
+    if max_players_reached?(game) do
       :ok
     else
       {:error, :not_enough_players}
     end
   end
 
-  @spec more_than_one_player?(t()) :: boolean()
-  def more_than_one_player?(game) do
-    length(game.players) > 1
+  @spec max_players_reached?(t()) :: boolean()
+  def max_players_reached?(game) do
+    length(game.players) == game.max_players
   end
 
   @spec is_player_host(t(), String.t()) :: :ok | {:error, atom()}
