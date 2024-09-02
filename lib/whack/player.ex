@@ -1,17 +1,15 @@
-defmodule Crazy8.Player do
+defmodule Whack.Player do
   @derive Jason.Encoder
   defstruct [
     :id,
     :name,
-    :art,
-    :hand
+    :art
   ]
 
   @type t :: %__MODULE__{
           id: String.t(),
           name: String.t(),
-          art: String.t(),
-          hand: list()
+          art: String.t()
         }
 
   @art [
@@ -25,20 +23,19 @@ defmodule Crazy8.Player do
     "🐶"
   ]
 
-  @spec new(String.t(), String.t(), list()) :: t()
-  def new(id, name, hand) do
+  @spec new(String.t(), String.t()) :: t()
+  def new(id, name) do
     random_art = Enum.random(@art)
 
     struct!(__MODULE__, %{
       id: id,
       name: name,
-      art: random_art,
-      hand: hand
+      art: random_art
     })
   end
 end
 
-defimpl String.Chars, for: Crazy8.Player do
+defimpl String.Chars, for: Whack.Player do
   def to_string(player) do
     "#{player.name} #{player.art}"
   end

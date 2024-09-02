@@ -1,5 +1,5 @@
-defmodule Crazy8.Deck do
-  alias Crazy8.Card
+defmodule Whack.Deck do
+  alias Whack.Card
 
   @type cards :: [Card.t()]
 

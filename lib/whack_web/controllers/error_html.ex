@@ -1,17 +1,17 @@
-defmodule Crazy8Web.ErrorHTML do
+defmodule WhackWeb.ErrorHTML do
   @moduledoc """
   This module is invoked by your endpoint in case of errors on HTML requests.
 
   See config/config.exs.
   """
-  use Crazy8Web, :html
+  use WhackWeb, :html
 
   # If you want to customize your error pages,
   # uncomment the embed_templates/1 call below
   # and add pages to the error directory:
   #
-  #   * lib/crazy8_web/controllers/error_html/404.html.heex
-  #   * lib/crazy8_web/controllers/error_html/500.html.heex
+  #   * lib/whack_web/controllers/error_html/404.html.heex
+  #   * lib/whack_web/controllers/error_html/500.html.heex
   #
   # embed_templates "error_html/*"
 

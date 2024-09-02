@@ -1,5 +1,5 @@
-defmodule Crazy8Web.PageControllerTest do
-  use Crazy8Web.ConnCase
+defmodule WhackWeb.PageControllerTest do
+  use WhackWeb.ConnCase
 
   test "GET /", %{conn: conn} do
     conn = get(conn, ~p"/")

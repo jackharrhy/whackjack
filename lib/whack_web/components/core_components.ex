@@ -1,4 +1,4 @@
-defmodule Crazy8Web.CoreComponents do
+defmodule WhackWeb.CoreComponents do
   @moduledoc """
   Provides core UI components.
 
@@ -17,7 +17,7 @@ defmodule Crazy8Web.CoreComponents do
   use Phoenix.Component
 
   alias Phoenix.LiveView.JS
-  import Crazy8Web.Gettext
+  import WhackWeb.Gettext
 
   @doc """
   Renders a modal.
@@ -672,9 +672,9 @@ defmodule Crazy8Web.CoreComponents do
     # with our gettext backend as first argument. Translations are
     # available in the errors.po file (as we use the "errors" domain).
     if count = opts[:count] do
-      Gettext.dngettext(Crazy8Web.Gettext, "errors", msg, msg, count, opts)
+      Gettext.dngettext(WhackWeb.Gettext, "errors", msg, msg, count, opts)
     else
-      Gettext.dgettext(Crazy8Web.Gettext, "errors", msg, opts)
+      Gettext.dgettext(WhackWeb.Gettext, "errors", msg, opts)
     end
   end
 

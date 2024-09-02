@@ -1,6 +1,6 @@
-defmodule Crazy8.GameServer do
+defmodule Whack.GameServer do
   use GenServer
-  alias Crazy8.Game
+  alias Whack.Game
   require Logger
 
   def generate_code() do
@@ -32,16 +32,8 @@ defmodule Crazy8.GameServer do
 
   def start_game(code, player_id), do: call_by_code(code, {:start_game, player_id})
 
-  def play_card(code, player_id, card_index),
-    do: call_by_code(code, {:play_card, player_id, card_index})
-
-  def draw_card(code, player_id), do: call_by_code(code, {:draw_card, player_id})
-
-  def pick_next_suit(code, player_id, suit),
-    do: call_by_code(code, {:pick_next_suit, player_id, suit})
-
   def broadcast!(code, event, payload \\ %{}) do
-    Phoenix.PubSub.broadcast!(Crazy8.PubSub, code, %{event: event, payload: payload})
+    Phoenix.PubSub.broadcast!(Whack.PubSub, code, %{event: event, payload: payload})
   end
 
   @impl GenServer
@@ -80,49 +72,13 @@ defmodule Crazy8.GameServer do
   end
 
   @impl GenServer
-  def handle_call({:play_card, player_id, card_index}, _from, state) do
-    case Game.play_card(state.game, player_id, card_index) do
-      {:ok, game} ->
-        broadcast_game_updated!(game.code, game)
-        {:reply, {:ok, game}, %{state | game: game}}
-
-      {:error, _} = error ->
-        {:reply, error, state}
-    end
-  end
-
-  @impl GenServer
-  def handle_call({:draw_card, player_id}, _from, state) do
-    case Game.draw_card(state.game, player_id) do
-      {:ok, game} ->
-        broadcast_game_updated!(game.code, game)
-        {:reply, {:ok, game}, %{state | game: game}}
-
-      {:error, _} = error ->
-        {:reply, error, state}
-    end
-  end
-
-  @impl GenServer
-  def handle_call({:pick_next_suit, player_id, suit}, _from, state) do
-    case Game.pick_next_suit(state.game, player_id, suit) do
-      {:ok, game} ->
-        broadcast_game_updated!(game.code, game)
-        {:reply, {:ok, game}, %{state | game: game}}
-
-      {:error, _} = error ->
-        {:reply, error, state}
-    end
-  end
-
-  @impl GenServer
   def handle_info({:put_game_into_state, game_state}, state) do
     game = Game.put_game_into_state(state.game, game_state)
     broadcast_game_updated!(game.code, game)
     {:noreply, %{state | game: game}}
   end
 
-  defp via_tuple(code), do: {:via, Registry, {Crazy8.GameRegistry, code}}
+  defp via_tuple(code), do: {:via, Registry, {Whack.GameRegistry, code}}
 
   defp call_by_code(code, command) do
     case game_pid(code) do

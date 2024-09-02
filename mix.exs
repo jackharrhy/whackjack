@@ -1,9 +1,9 @@
-defmodule Crazy8.MixProject do
+defmodule Whack.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :crazy8,
+      app: :whack,
       version: "0.1.0",
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -18,7 +18,7 @@ defmodule Crazy8.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {Crazy8.Application, []},
+      mod: {Whack.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end
@@ -70,9 +70,9 @@ defmodule Crazy8.MixProject do
     [
       setup: ["deps.get", "assets.setup", "assets.build"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["tailwind crazy8", "esbuild crazy8"],
+      "assets.build": ["tailwind whack", "esbuild whack"],
       "assets.deploy": [
-        "tailwind crazy8 --minify",
+        "tailwind whack --minify",
         "node build.js --deploy --prefix assets",
         "phx.digest"
       ]

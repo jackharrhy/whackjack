@@ -1,11 +1,11 @@
-defmodule Crazy8Web.Router do
-  use Crazy8Web, :router
+defmodule WhackWeb.Router do
+  use WhackWeb, :router
 
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
-    plug :put_root_layout, html: {Crazy8Web.Layouts, :root}
+    plug :put_root_layout, html: {WhackWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
   end
@@ -14,7 +14,7 @@ defmodule Crazy8Web.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/", Crazy8Web do
+  scope "/", WhackWeb do
     pipe_through :browser
 
     get "/setup", EnsureSessionController, :index
@@ -28,12 +28,12 @@ defmodule Crazy8Web.Router do
   end
 
   # Other scopes may use custom stacks.
-  # scope "/api", Crazy8Web do
+  # scope "/api", WhackWeb do
   #   pipe_through :api
   # end
 
   # Enable LiveDashboard in development
-  if Application.compile_env(:crazy8, :dev_routes) do
+  if Application.compile_env(:whack, :dev_routes) do
     # If you want to use the LiveDashboard in production, you should put
     # it behind authentication and allow only admins to access it.
     # If your application does not have an admins-only section yet,
@@ -44,7 +44,7 @@ defmodule Crazy8Web.Router do
     scope "/dev" do
       pipe_through :browser
 
-      live_dashboard "/dashboard", metrics: Crazy8Web.Telemetry
+      live_dashboard "/dashboard", metrics: WhackWeb.Telemetry
     end
   end
 end

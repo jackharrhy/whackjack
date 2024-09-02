@@ -7,24 +7,24 @@
 # General application configuration
 import Config
 
-config :crazy8,
+config :whack,
   generators: [timestamp_type: :utc_datetime, binary_id: true]
 
 # Configures the endpoint
-config :crazy8, Crazy8Web.Endpoint,
+config :whack, WhackWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [html: Crazy8Web.ErrorHTML, json: Crazy8Web.ErrorJSON],
+    formats: [html: WhackWeb.ErrorHTML, json: WhackWeb.ErrorJSON],
     layout: false
   ],
-  pubsub_server: Crazy8.PubSub,
+  pubsub_server: Whack.PubSub,
   live_view: [signing_salt: "9rDy2NRf"]
 
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.17.11",
-  crazy8: [
+  whack: [
     args:
       ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
     cd: Path.expand("../assets", __DIR__),
@@ -34,7 +34,7 @@ config :esbuild,
 # Configure tailwind (the version is required)
 config :tailwind,
   version: "3.4.3",
-  crazy8: [
+  whack: [
     args: ~w(
       --config=tailwind.config.js
       --input=css/app.css

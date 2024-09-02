@@ -1,5 +1,5 @@
-defmodule Crazy8Web.EnsureSessionController do
-  use Crazy8Web, :controller
+defmodule WhackWeb.EnsureSessionController do
+  use WhackWeb, :controller
 
   def index(conn, %{"name" => name} = params) do
     return_to = Map.get(params, "return_to", "/")

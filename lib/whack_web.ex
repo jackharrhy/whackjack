@@ -1,12 +1,12 @@
-defmodule Crazy8Web do
+defmodule WhackWeb do
   @moduledoc """
   The entrypoint for defining your web interface, such
   as controllers, components, channels, and so on.
 
   This can be used in your application as:
 
-      use Crazy8Web, :controller
-      use Crazy8Web, :html
+      use WhackWeb, :controller
+      use WhackWeb, :html
 
   The definitions below will be executed for every controller,
   component, etc, so keep them short and clean, focused
@@ -40,10 +40,10 @@ defmodule Crazy8Web do
     quote do
       use Phoenix.Controller,
         formats: [:html, :json],
-        layouts: [html: Crazy8Web.Layouts]
+        layouts: [html: WhackWeb.Layouts]
 
       import Plug.Conn
-      import Crazy8Web.Gettext
+      import WhackWeb.Gettext
 
       unquote(verified_routes())
     end
@@ -52,7 +52,7 @@ defmodule Crazy8Web do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {Crazy8Web.Layouts, :app},
+        layout: {WhackWeb.Layouts, :app},
         container: {:div, class: "h-full flex flex-col"}
 
       unquote(html_helpers())
@@ -85,8 +85,8 @@ defmodule Crazy8Web do
       # HTML escaping functionality
       import Phoenix.HTML
       # Core UI components and translation
-      import Crazy8Web.CoreComponents
-      import Crazy8Web.Gettext
+      import WhackWeb.CoreComponents
+      import WhackWeb.Gettext
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
@@ -101,9 +101,9 @@ defmodule Crazy8Web do
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,
-        endpoint: Crazy8Web.Endpoint,
-        router: Crazy8Web.Router,
-        statics: Crazy8Web.static_paths()
+        endpoint: WhackWeb.Endpoint,
+        router: WhackWeb.Router,
+        statics: WhackWeb.static_paths()
     end
   end
 

@@ -1,4 +1,4 @@
-defmodule Crazy8.Card do
+defmodule Whack.Card do
   @suits [:hearts, :diamonds, :clubs, :spades]
   @values [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
   @types [:number, :face]
@@ -91,7 +91,7 @@ defmodule Crazy8.Card do
   end
 end
 
-defimpl String.Chars, for: Crazy8.Card do
+defimpl String.Chars, for: Whack.Card do
   def to_string(card) do
     "#{card.art}"
   end

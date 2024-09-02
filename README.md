@@ -1,4 +1,4 @@
-# crazy8
+# whackjack
 
 ## running
 

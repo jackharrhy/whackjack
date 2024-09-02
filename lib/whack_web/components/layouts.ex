@@ -1,14 +1,14 @@
-defmodule Crazy8Web.Layouts do
+defmodule WhackWeb.Layouts do
   @moduledoc """
   This module holds different layouts used by your application.
 
   See the `layouts` directory for all templates available.
   The "root" layout is a skeleton rendered as part of the
   application router. The "app" layout is set as the default
-  layout on both `use Crazy8Web, :controller` and
-  `use Crazy8Web, :live_view`.
+  layout on both `use WhackWeb, :controller` and
+  `use WhackWeb, :live_view`.
   """
-  use Crazy8Web, :html
+  use WhackWeb, :html
 
   embed_templates "layouts/*"
 end

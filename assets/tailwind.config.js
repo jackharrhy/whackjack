@@ -6,8 +6,8 @@ const config = {
   darkMode: ["class"],
   content: [
     "./js/**/*.js",
-    "../lib/crazy8_web.ex",
-    "../lib/crazy8_web/**/*.*ex",
+    "../lib/whack_web.ex",
+    "../lib/whack_web/**/*.*ex",
     "./svelte/**/*.svelte",
   ],
   safelist: ["dark"],

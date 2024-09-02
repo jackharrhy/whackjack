@@ -1,8 +1,8 @@
-defmodule Crazy8Web.SinglePaneGameLive do
-  use Crazy8Web, :live_view
+defmodule WhackWeb.SinglePaneGameLive do
+  use WhackWeb, :live_view
 
-  alias Crazy8.GameServer
-  alias Crazy8.GameSupervisor
+  alias Whack.GameServer
+  alias Whack.GameSupervisor
 
   require Logger
 
@@ -19,7 +19,7 @@ defmodule Crazy8Web.SinglePaneGameLive do
     end
 
     if connected?(socket) do
-      :ok = Phoenix.PubSub.subscribe(Crazy8.PubSub, code)
+      :ok = Phoenix.PubSub.subscribe(Whack.PubSub, code)
     end
 
     {:ok, game} = GameServer.get_game(code)
@@ -41,7 +41,7 @@ defmodule Crazy8Web.SinglePaneGameLive do
     ~H"""
     <div class="grid grid-cols-2 grid-rows-[1.5fr_1fr_1fr] gap-0 h-full">
       <div class="col-span-2 border border-stone-300">
-        <.live_component module={Crazy8Web.MainComponent} id="main" game={@game} />
+        <.live_component module={WhackWeb.MainComponent} id="main" game={@game} />
       </div>
       
       <%= for {player, index} <- Enum.with_index(@game.players) do %>
@@ -53,7 +53,7 @@ defmodule Crazy8Web.SinglePaneGameLive do
           </div>
           
           <.live_component
-            module={Crazy8Web.PlayerComponent}
+            module={WhackWeb.PlayerComponent}
             id={"player-#{player.id}"}
             game={@game}
             player={player}

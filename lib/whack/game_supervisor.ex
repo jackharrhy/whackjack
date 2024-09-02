@@ -1,7 +1,7 @@
-defmodule Crazy8.GameSupervisor do
+defmodule Whack.GameSupervisor do
   use DynamicSupervisor
 
-  alias Crazy8.GameServer
+  alias Whack.GameServer
 
   require Logger
 

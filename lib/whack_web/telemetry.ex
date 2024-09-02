@@ -1,4 +1,4 @@
-defmodule Crazy8Web.Telemetry do
+defmodule WhackWeb.Telemetry do
   use Supervisor
   import Telemetry.Metrics
 
@@ -63,7 +63,7 @@ defmodule Crazy8Web.Telemetry do
     [
       # A module, function and arguments to be invoked periodically.
       # This function must call :telemetry.execute/3 and a metric must be added above.
-      # {Crazy8Web, :count_users, []}
+      # {WhackWeb, :count_users, []}
     ]
   end
 end

@@ -1,9 +1,9 @@
-defmodule Crazy8Web.LobbyLive do
-  use Crazy8Web, :live_view
+defmodule WhackWeb.LobbyLive do
+  use WhackWeb, :live_view
 
   require Logger
 
-  alias Crazy8.GameServer
+  alias Whack.GameServer
 
   def render(assigns) do
     ~H"""
@@ -46,7 +46,7 @@ defmodule Crazy8Web.LobbyLive do
         code: "",
         name: "",
         error: nil,
-        dev: Application.fetch_env!(:crazy8, :dev)
+        dev: Application.fetch_env!(:whack, :dev)
       )
 
     {:ok, socket}

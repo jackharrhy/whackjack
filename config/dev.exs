@@ -6,7 +6,7 @@ import Config
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
-config :crazy8, Crazy8Web.Endpoint,
+config :whack, WhackWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   http: [ip: {0, 0, 0, 0}, port: 7000],
@@ -16,7 +16,7 @@ config :crazy8, Crazy8Web.Endpoint,
   secret_key_base: "0zZRdD9WJKgtHDr3sSRq7UHWrBeUnRzI0qVsG8wlLprCkvAWqbMGjZDE1inuk6i5",
   watchers: [
     node: ["build.js", "--watch", cd: Path.expand("../assets", __DIR__)],
-    tailwind: {Tailwind, :install_and_run, [:crazy8, ~w(--watch)]}
+    tailwind: {Tailwind, :install_and_run, [:whack, ~w(--watch)]}
   ]
 
 # ## SSL Support
@@ -43,19 +43,19 @@ config :crazy8, Crazy8Web.Endpoint,
 # different ports.
 
 # Watch static and templates for browser reloading.
-config :crazy8, Crazy8Web.Endpoint,
+config :whack, WhackWeb.Endpoint,
   live_reload: [
     patterns: [
       ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/crazy8_web/(controllers|live|components)/.*(ex|heex)$"
+      ~r"lib/whack_web/(controllers|live|components)/.*(ex|heex)$"
     ]
   ]
 
 # Enable dev routes for dashboard and mailbox
-config :crazy8, dev_routes: true
+config :whack, dev_routes: true
 
-config :crazy8, dev: true
+config :whack, dev: true
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"

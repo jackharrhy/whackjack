@@ -1,8 +1,8 @@
-defmodule Crazy8Web.PlayerLive do
-  use Crazy8Web, :live_view
+defmodule WhackWeb.PlayerLive do
+  use WhackWeb, :live_view
 
-  alias Crazy8.Game
-  alias Crazy8.GameServer
+  alias Whack.Game
+  alias Whack.GameServer
 
   require Logger
 
@@ -21,7 +21,7 @@ defmodule Crazy8Web.PlayerLive do
     end
 
     if connected?(socket) do
-      :ok = Phoenix.PubSub.subscribe(Crazy8.PubSub, code)
+      :ok = Phoenix.PubSub.subscribe(Whack.PubSub, code)
     end
 
     {:ok, game} = GameServer.get_game(code)
@@ -44,7 +44,7 @@ defmodule Crazy8Web.PlayerLive do
     ~H"""
     <%= if !is_nil(@player) do %>
       <.live_component
-        module={Crazy8Web.PlayerComponent}
+        module={WhackWeb.PlayerComponent}
         id={"player-#{@player.id}"}
         game={@game}
         player={@player}

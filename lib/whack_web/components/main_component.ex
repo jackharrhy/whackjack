@@ -1,5 +1,5 @@
-defmodule Crazy8Web.MainComponent do
-  use Crazy8Web, :live_component
+defmodule WhackWeb.MainComponent do
+  use WhackWeb, :live_component
 
   def render(assigns) do
     ~H"""
