@@ -14,8 +14,7 @@ defmodule Crazy8.Game do
             deck: nil,
             host: nil,
             turn: nil,
-            pile: [],
-            discard: []
+            pile: []
 
   @max_players 4
 
@@ -32,8 +31,7 @@ defmodule Crazy8.Game do
           deck: Deck.cards() | nil,
           host: String.t() | nil,
           turn: String.t() | nil,
-          pile: [Deck.cards()],
-          discard: [Deck.cards()]
+          pile: [Deck.cards()]
         }
 
   @spec new(String.t()) :: t()
@@ -219,22 +217,41 @@ defmodule Crazy8.Game do
   def draw_card(game, player_id) do
     with :ok <- is_game_in_state(game, :playing),
          {:ok, player} <- get_player_by_id(game, player_id),
-         :ok <- is_player_turn(game, player_id),
-         {:ok, {card, deck}} <- Deck.draw_card(game.deck) do
-      player = %{player | hand: player.hand ++ [card]}
+         :ok <- is_player_turn(game, player_id) do
+      case Deck.draw_card(game.deck) do
+        {:ok, {card, deck}} ->
+          player = %{player | hand: player.hand ++ [card]}
 
-      Logger.debug("#{game.code}: Player #{player} drew card #{card}")
+          Logger.debug("#{game.code}: Player #{player} drew card #{card}")
 
-      game =
-        game
-        |> Map.put(:deck, deck)
-        |> Map.put(
-          :players,
-          List.replace_at(game.players, get_player_index(game, player_id), player)
-        )
-        |> new_message("player #{player} drew card")
+          game =
+            game
+            |> Map.put(:deck, deck)
+            |> Map.put(
+              :players,
+              List.replace_at(game.players, get_player_index(game, player_id), player)
+            )
+            |> new_message("player #{player} drew card")
 
-      {:ok, game}
+          {:ok, game}
+
+        {:error, :not_enough_cards} ->
+          [top_card | rest_cards] = game.pile
+
+          if Enum.empty?(rest_cards) do
+            raise "Game cannot continue: No cards left to reshuffle"
+          end
+
+          deck = Deck.shuffle(rest_cards)
+
+          game =
+            game
+            |> Map.put(:deck, deck)
+            |> Map.put(:pile, [top_card])
+            |> new_message("the deck has been reshuffled")
+
+          draw_card(game, player_id)
+      end
     end
   end
 
