@@ -45,7 +45,7 @@ defmodule WhackWeb.SinglePaneGameLive do
       </div>
       
       <%= for {player, index} <- Enum.with_index(@game.players) do %>
-        <div class={"#{player_area_class(index)} border border-stone-300"}>
+        <div class={"#{player_area_class(index)} flex flex-col border border-stone-300"}>
           <div class="border-b border-stone-300 py-.5 px-1 text-xs">
             <p>
               <%= player.name %>

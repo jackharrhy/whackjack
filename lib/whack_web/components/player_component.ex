@@ -9,11 +9,12 @@ defmodule WhackWeb.PlayerComponent do
 
   def render(assigns) do
     ~H"""
-    <div>
+    <div class="h-full">
       <.svelte
         name="Player"
         socket={@socket}
         props={%{game: @game, player: @player, myself: @myself.cid}}
+        class="h-full"
       />
     </div>
     """

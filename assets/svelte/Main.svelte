@@ -1,6 +1,13 @@
 <script>
   export let game;
 
+  export let live;
+  export let myself;
+
+  function resetGame() {
+    live.pushEventTo(myself, "reset-game", {});
+  }
+
   function isPlayerHost(player) {
     return game.host === player.id;
   }
@@ -10,39 +17,42 @@
   }
 </script>
 
-<div class="flex h-full">
-  <div class="flex-1 flex flex-col gap-8">
-    <div class="border-b p-2">
-      <div class="flex flex-wrap justify-center items-center gap-4">
-        <p>State: {game.state}</p>
-
-        <div class="flex flex-wrap justify-center items-center gap-2">
-          {#each game.players as gamePlayer}
-            <div
-              class="bg-blue-100 text-blue-900 px-3 py-1 rounded-sm border border-blue-300"
-            >
-              {#if game.state === "setup" && isPlayerHost(gamePlayer)}
-                👑
+<div class="bg-felt bg-contain flex h-full p-2">
+  <div class="flex-1 flex gap-8 py-6 px-12">
+    <div class="grid grid-rows-4 gap-4">
+      {#each Array(4) as _, i}
+        <div class="flex flex-col justify-center items-center">
+          {#if i < game.players.length}
+            <div>
+              {#if game.players[i].image_path}
+                <img
+                  src={game.players[i].image_path}
+                  alt={game.players[i].name}
+                  class="w-20 h-20 rounded-lg object-cover border-2 border-white"
+                />
+              {:else}
+                <span class="text-4xl">{game.players[i].art}</span>
               {/if}
-
-              {gamePlayer.name}
-              {gamePlayer.art}
+              <p class="text-white drop-shadow-text text-center">
+                {game.players[i].name}
+              </p>
             </div>
-          {/each}
+          {:else}
+            <p class="text-white/50 drop-shadow-text text-center">waiting...</p>
+          {/if}
         </div>
-      </div>
+      {/each}
     </div>
-
-    {#if game.state === "playing"}
-      playing
-    {/if}
   </div>
 
-  <div class="flex flex-col border-x p-2 h-full overflow-y-auto">
-    <ul class="list-none">
-      {#each game.messages as message}
-        <li>{message}</li>
-      {/each}
-    </ul>
+  <div class="flex flex-col p-3 h-full overflow-y-auto">
+    <div class="bg-stone-900/40 text-white p-3 h-full">
+      <p class="font-semibold text-center text-3xl pb-2">{game.code}</p>
+      <ul class="list-none">
+        {#each game.messages as message}
+          <li>{message}</li>
+        {/each}
+      </ul>
+    </div>
   </div>
 </div>

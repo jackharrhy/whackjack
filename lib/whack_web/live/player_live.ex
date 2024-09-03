@@ -6,7 +6,11 @@ defmodule WhackWeb.PlayerLive do
 
   require Logger
 
-  def mount(%{"code" => code} = params, %{"session_id" => session_id, "name" => name}, socket) do
+  def mount(
+        %{"code" => code} = params,
+        %{"session_id" => session_id, "name" => name} = session,
+        socket
+      ) do
     debug = Map.has_key?(params, "debug")
 
     socket =
@@ -33,7 +37,8 @@ defmodule WhackWeb.PlayerLive do
           assign(socket, player: player)
 
         {:error, _reason} ->
-          {:ok, game, player} = GameServer.add_player(game.code, session_id, name)
+          image_path = Map.get(session, "image_path")
+          {:ok, game, player} = GameServer.add_player(game.code, session_id, name, image_path)
           socket |> assign(game: game, player: player)
       end
 

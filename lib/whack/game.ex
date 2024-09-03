@@ -9,7 +9,7 @@ defmodule Whack.Game do
             players: [],
             host: nil
 
-  @max_players 8
+  @max_players 4
 
   @type game_state :: :setup | :playing
 
@@ -32,6 +32,11 @@ defmodule Whack.Game do
     )
   end
 
+  @spec reset_game(t()) :: {:ok, t()}
+  def reset_game(game) do
+    {:ok, new(game.code)}
+  end
+
   @spec put_game_into_state(t(), game_state) :: t()
   def put_game_into_state(game, state) do
     Map.put(game, :state, state)
@@ -42,14 +47,14 @@ defmodule Whack.Game do
     game |> Map.put(:messages, [message | game.messages])
   end
 
-  @spec add_player(t(), String.t(), String.t()) ::
+  @spec add_player(t(), String.t(), String.t(), String.t() | nil) ::
           {:ok, t(), Player.t()} | {:error, atom()}
-  def add_player(game, player_id, player_name) do
+  def add_player(game, player_id, player_name, image_path) do
     if game.state == :setup do
       if length(game.players) >= @max_players do
         {:error, :game_full}
       else
-        player = Player.new(player_id, player_name)
+        player = Player.new(player_id, player_name, image_path)
 
         game =
           if is_nil(game.host) do
@@ -120,7 +125,7 @@ defmodule Whack.Game do
 
   @spec max_players_reached?(t()) :: boolean()
   def max_players_reached?(game) do
-    length(game.players) == game.max_players
+    length(game.players) == @max_players
   end
 
   @spec is_player_host(t(), String.t()) :: :ok | {:error, atom()}

@@ -12,6 +12,11 @@ defmodule WhackWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+
+    scope "/api", WhackWeb do
+      post "/upload-image", ImageUploadController, :create
+      get "/image/:filename", ImageServeController, :show
+    end
   end
 
   scope "/", WhackWeb do

@@ -1,4 +1,5 @@
 <script>
+  import { Button } from "$lib/components/ui/button";
   import { Toaster } from "$lib/components/ui/sonner";
   import { toast } from "svelte-sonner";
 
@@ -25,23 +26,24 @@
 
 <Toaster />
 
-<div class="flex flex-col flex-wrap justify-center items-center p-4">
+<div
+  class="bg-felt backdrop-blur-2xl bg-contain h-full flex flex-col flex-wrap justify-center items-center p-4"
+>
   {#if game.state === "setup"}
     {#if isPlayerHost}
       {#if game.players.length >= 4}
-        <button
-          on:click={() => startGame()}
-          class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mb-4"
+        <Button variant="outline" on:click={() => startGame()}
+          >start game</Button
         >
-          start game
-        </button>
       {:else}
-        <p class="text-yellow-600 font-semibold mb-4">
-          waiting for more players to join...
+        <p
+          class="text-white drop-shadow-text italic font-semibold my-4 text-xl"
+        >
+          waiting for more players to join... ({game.players.length}/4)
         </p>
       {/if}
     {:else}
-      <p class="text-gray-600 italic mb-4">
+      <p class="text-white drop-shadow-text italic font-semibold my-4 text-xl">
         waiting for host to start the game...
       </p>
     {/if}

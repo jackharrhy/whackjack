@@ -7,7 +7,11 @@ defmodule WhackWeb.LobbyLive do
 
   def render(assigns) do
     ~H"""
-    <.svelte name="Lobby" socket={@socket} props={%{name: @name, code: @code}} />
+    <.svelte
+      name="Lobby"
+      socket={@socket}
+      props={%{name: @name, code: @code, image_path: @image_path}}
+    />
     """
   end
 
@@ -40,11 +44,14 @@ defmodule WhackWeb.LobbyLive do
     end
   end
 
-  def mount(_params, _session, socket) do
+  def mount(_params, session, socket) do
+    image_path = Map.get(session, "image_path")
+
     socket =
       assign(socket,
         code: "",
         name: "",
+        image_path: image_path,
         error: nil,
         dev: Application.fetch_env!(:whack, :dev)
       )

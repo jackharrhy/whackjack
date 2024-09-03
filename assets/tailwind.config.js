@@ -20,6 +20,12 @@ const config = {
       },
     },
     extend: {
+      dropShadow: {
+        text: "0 1.2px 1.2px rgba(0, 0, 0, 0.8)",
+      },
+      backgroundImage: {
+        "felt": "url('/images/Board/felt_green.jpg')",
+      },
       colors: {
         border: "hsl(var(--border) / <alpha-value>)",
         input: "hsl(var(--input) / <alpha-value>)",

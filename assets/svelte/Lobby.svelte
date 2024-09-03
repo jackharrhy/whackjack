@@ -4,11 +4,52 @@
 
   export let name = "";
   export let code = "";
+  export let image_path = "";
+
+  $: localImage = undefined;
+
+  $: imagePath = localImage || image_path;
+
+  $: console.log({ imagePath });
+
+  let imageFile: HTMLInputElement;
+
+  async function uploadImage() {
+    if (!imageFile.files || imageFile.files.length === 0) {
+      alert("Please select a file first");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", imageFile.files[0]);
+
+    const response = await fetch("/api/upload-image", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      localImage = `${data.path}?${Date.now()}`;
+    } else {
+      console.error("Upload failed");
+    }
+  }
 </script>
 
 <header class="flex justify-center text-2xl py-4">whack</header>
 
 <div class="flex items-center flex-col gap-6 w-64 mx-auto">
+  <div class="flex flex-col gap-2 w-full">
+    {#if image_path}
+      <img src={imagePath} alt="upload of yourself" />
+    {/if}
+    <Input type="file" bind:inputRef={imageFile} />
+    <Button variant="outline" on:click={uploadImage}>
+      upload picture of yourself
+    </Button>
+  </div>
+
   <form
     phx-change="update"
     phx-submit="join-game"

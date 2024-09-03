@@ -3,13 +3,15 @@ defmodule Whack.Player do
   defstruct [
     :id,
     :name,
-    :art
+    :art,
+    :image_path
   ]
 
   @type t :: %__MODULE__{
           id: String.t(),
           name: String.t(),
-          art: String.t()
+          art: String.t(),
+          image_path: String.t() | nil
         }
 
   @art [
@@ -23,14 +25,15 @@ defmodule Whack.Player do
     "🐶"
   ]
 
-  @spec new(String.t(), String.t()) :: t()
-  def new(id, name) do
+  @spec new(String.t(), String.t(), String.t() | nil) :: t()
+  def new(id, name, image_path) do
     random_art = Enum.random(@art)
 
     struct!(__MODULE__, %{
       id: id,
       name: name,
-      art: random_art
+      art: random_art,
+      image_path: image_path
     })
   end
 end

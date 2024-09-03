@@ -54,9 +54,10 @@ defmodule Whack.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
-      {:nanoid, "~> 2.1.0"},
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
-      {:live_svelte, "~> 0.13.3"}
+      {:nanoid, "~> 2.1.0"},
+      {:live_svelte, "~> 0.13.3"},
+      {:mogrify, "~> 0.9.3"}
     ]
   end
 
