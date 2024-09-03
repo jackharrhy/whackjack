@@ -37,7 +37,7 @@
   }
 </script>
 
-<header class="flex justify-center text-2xl py-4">whack</header>
+<header class="flex justify-center text-2xl py-4">whackjack</header>
 
 <div class="flex items-center flex-col gap-6 w-64 mx-auto">
   <div class="flex flex-col gap-2 w-full">
