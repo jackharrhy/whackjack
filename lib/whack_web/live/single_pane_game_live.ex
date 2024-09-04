@@ -28,7 +28,12 @@ defmodule WhackWeb.SinglePaneGameLive do
       player_names = ["jack", "marty", "natalie", "ethan"]
 
       for name <- player_names do
-        GameServer.add_player(code, name, name)
+        GameServer.add_player(
+          code,
+          name,
+          name,
+          "https://www.cs.mun.ca/~jaharrhy/_astro/dither-me.ClQe2bsc.png"
+        )
       end
     end
 
@@ -41,7 +46,7 @@ defmodule WhackWeb.SinglePaneGameLive do
     ~H"""
     <div class="grid grid-cols-2 grid-rows-[1.5fr_1fr_1fr] gap-0 h-full">
       <div class="col-span-2 border border-stone-300">
-        <.live_component module={WhackWeb.MainComponent} id="main" game={@game} />
+        <.live_component module={WhackWeb.MainComponent} id="main" game={@game} debug={@debug} />
       </div>
       
       <%= for {player, index} <- Enum.with_index(@game.players) do %>

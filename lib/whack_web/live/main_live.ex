@@ -30,7 +30,7 @@ defmodule WhackWeb.MainLive do
 
   def render(assigns) do
     ~H"""
-    <.live_component module={WhackWeb.MainComponent} id="main" game={@game} />
+    <.live_component module={WhackWeb.MainComponent} id="main" game={@game} debug={@debug} />
     """
   end
 

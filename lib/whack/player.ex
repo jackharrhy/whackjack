@@ -4,14 +4,18 @@ defmodule Whack.Player do
     :id,
     :name,
     :art,
-    :image_path
+    :image_path,
+    :draw_pile
   ]
+
+  alias Whack.Card
 
   @type t :: %__MODULE__{
           id: String.t(),
           name: String.t(),
           art: String.t(),
-          image_path: String.t() | nil
+          image_path: String.t() | nil,
+          draw_pile: [Card.t()]
         }
 
   @art [
@@ -33,7 +37,8 @@ defmodule Whack.Player do
       id: id,
       name: name,
       art: random_art,
-      image_path: image_path
+      image_path: image_path,
+      draw_pile: []
     })
   end
 end

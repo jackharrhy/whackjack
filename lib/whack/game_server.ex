@@ -63,9 +63,9 @@ defmodule Whack.GameServer do
   @impl GenServer
   def handle_call({:start_game, player_id}, _from, state) do
     case Game.start_game(state.game, player_id) do
-      {:ok, game} ->
-        broadcast_game_updated!(game.code, game)
-        {:reply, {:ok, game}, %{state | game: game}}
+      {:ok, state_changes} ->
+        handle_state_changes(state_changes)
+        {:reply, {:ok, state.game}, state}
 
       {:error, _} = error ->
         {:reply, error, state}
@@ -77,6 +77,12 @@ defmodule Whack.GameServer do
     {:ok, game} = Game.reset_game(state.game)
     broadcast_game_updated!(game.code, game)
     {:reply, {:ok, game}, %{state | game: game}}
+  end
+
+  @impl GenServer
+  def handle_info({:update_game_state, game}, state) do
+    broadcast_game_updated!(game.code, game)
+    {:noreply, %{state | game: game}}
   end
 
   @impl GenServer
@@ -93,6 +99,14 @@ defmodule Whack.GameServer do
       game_pid when is_pid(game_pid) -> GenServer.call(game_pid, command)
       nil -> {:error, :game_not_found}
     end
+  end
+
+  defp handle_state_changes(state_changes) do
+    Enum.reduce(state_changes, 0, fn {delay, game}, acc_delay ->
+      total_delay = acc_delay + delay
+      :timer.send_after(total_delay, self(), {:update_game_state, game})
+      total_delay
+    end)
   end
 
   defp broadcast_game_updated!(code, game) do

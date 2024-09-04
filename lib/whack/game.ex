@@ -1,24 +1,28 @@
 defmodule Whack.Game do
-  alias Whack.Player
   require Logger
+
+  alias Whack.Player
+  alias Whack.Deck
 
   @derive Jason.Encoder
   defstruct messages: [],
             code: nil,
             state: :setup,
             players: [],
+            turn: nil,
             host: nil
 
   @max_players 4
 
-  @type game_state :: :setup | :playing
+  @type game_state :: :setup | :playing | :busy
 
   @type t :: %__MODULE__{
           messages: [String.t()],
           code: String.t() | nil,
           state: game_state,
           players: [Player.t()],
-          host: String.t() | nil
+          host: String.t() | nil,
+          turn: String.t() | nil
         }
 
   @spec new(String.t()) :: t()
@@ -77,15 +81,35 @@ defmodule Whack.Game do
     end
   end
 
-  @spec start_game(t(), String.t()) :: {:ok, t()} | {:error, atom()}
+  @spec start_game(t(), String.t()) :: {:ok, [{integer(), t()}]} | {:error, atom()}
   def start_game(game, player_id) do
     with :ok <- is_player_host(game, player_id),
          :ok <- is_game_in_state(game, :setup),
-         :ok <- max_players_reached(game),
-         game <- put_game_into_state(game, :playing) do
-      game = game |> new_message("game started")
+         :ok <- max_players_reached(game) do
+      suits =
+        Deck.fresh_deck()
+        |> Deck.shuffle()
+        |> Deck.split_by_suits()
+        |> Tuple.to_list()
+        |> Enum.shuffle()
 
-      {:ok, game}
+      game = put_game_into_state(game, :busy)
+
+      IO.inspect(suits)
+
+      Enum.reduce(Enum.zip([game.players, suits]), [game], fn {player, suit}, acc ->
+        player = Map.put(player, :draw_pile, suit)
+
+        IO.inspect(player)
+
+        acc
+      end)
+
+      raise "EXCEPTION"
+
+      state_changes = []
+
+      {:ok, state_changes}
     end
   end
 
