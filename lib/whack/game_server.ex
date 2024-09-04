@@ -85,13 +85,6 @@ defmodule Whack.GameServer do
     {:noreply, %{state | game: game}}
   end
 
-  @impl GenServer
-  def handle_info({:put_game_into_state, game_state}, state) do
-    game = Game.put_game_into_state(state.game, game_state)
-    broadcast_game_updated!(game.code, game)
-    {:noreply, %{state | game: game}}
-  end
-
   defp via_tuple(code), do: {:via, Registry, {Whack.GameRegistry, code}}
 
   defp call_by_code(code, command) do

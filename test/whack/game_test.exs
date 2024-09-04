@@ -1,7 +1,6 @@
 defmodule Whack.GameTest do
   use ExUnit.Case, async: true
   alias Whack.Game
-  alias Whack.Player
 
   describe "start_game/2" do
     test "successfully starts the game with max players" do
@@ -18,7 +17,7 @@ defmodule Whack.GameTest do
       {:ok, state_changes} = Game.start_game(game, "player1")
 
       assert length(state_changes) > 0
-      [final_state | _] = Enum.reverse(state_changes)
+      [{_, final_state} | _] = Enum.reverse(state_changes)
 
       assert final_state.state == :playing
       assert length(final_state.players) == 4

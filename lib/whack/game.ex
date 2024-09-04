@@ -41,11 +41,6 @@ defmodule Whack.Game do
     {:ok, new(game.code)}
   end
 
-  @spec put_game_into_state(t(), game_state) :: t()
-  def put_game_into_state(game, state) do
-    Map.put(game, :state, state)
-  end
-
   @spec new_message(t(), String.t()) :: t()
   def new_message(game, message) do
     game |> Map.put(:messages, [message | game.messages])
@@ -93,21 +88,23 @@ defmodule Whack.Game do
         |> Tuple.to_list()
         |> Enum.shuffle()
 
-      game = put_game_into_state(game, :busy)
+      game = Map.put(game, :state, :busy)
 
-      IO.inspect(suits)
+      game_states =
+        Enum.reduce(Enum.zip([game.players, suits]), [game], fn {player, suit}, [game | games] ->
+          player = Map.put(player, :draw_pile, suit)
+          next_game = game |> update_player(player)
+          [next_game | [game | games]]
+        end)
 
-      Enum.reduce(Enum.zip([game.players, suits]), [game], fn {player, suit}, acc ->
-        player = Map.put(player, :draw_pile, suit)
+      [game | _] = game_states
+      game = Map.put(game, :state, :playing)
+      game_states = [game | game_states]
 
-        IO.inspect(player)
-
-        acc
-      end)
-
-      raise "EXCEPTION"
-
-      state_changes = []
+      state_changes =
+        game_states
+        |> Enum.map(&{500, &1})
+        |> Enum.reverse()
 
       {:ok, state_changes}
     end
@@ -164,5 +161,14 @@ defmodule Whack.Game do
   @spec is_player_host?(t(), String.t()) :: boolean()
   def is_player_host?(game, player_id) do
     player_id == game.host
+  end
+
+  @spec update_player(t(), Player.t()) :: t()
+  def update_player(game, player) do
+    update_in(game.players, fn players ->
+      Enum.map(players, fn p ->
+        if p.id == player.id, do: player, else: p
+      end)
+    end)
   end
 end
