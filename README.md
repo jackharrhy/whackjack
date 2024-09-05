@@ -5,4 +5,6 @@ codebase is a descendant of [crazy8](https://github.com/jackharrhy/crazy8), whic
 ## running
 
 - `mix setup` to install and setup dependencies
-- start with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+- `cd assets && npm install` to install the required packages for svelte / esbuild / tailwind realted things
+- ensure [ImageMagick](https://imagemagick.org/script/download.php) is installed
+- start with `mix phx.server`, or inside an IEx REPL with `iex -S mix phx.server`
