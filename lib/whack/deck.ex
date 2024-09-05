@@ -6,7 +6,7 @@ defmodule Whack.Deck do
   @spec fresh_deck() :: cards()
   def fresh_deck() do
     for suit <- Card.suits(), value <- Card.values() do
-      if value > 10 or value < 13 do
+      if value > 10 and value <= 13 do
         Card.new(suit, value, :face)
       else
         Card.new(suit, value, :number)

@@ -41,8 +41,10 @@
                 <div class="relative w-40 h-32">
                   {#each game.players[i].draw_pile as _card, index}
                     <div
-                      class="absolute"
-                      style="left: {index * 6}px; z-index: {index};"
+                      class="absolute fade-in-top"
+                      style="left: {index *
+                        6}px; z-index: {index}; animation-delay: {index *
+                        0.1}s;"
                     >
                       <Card />
                     </div>
@@ -59,7 +61,7 @@
                   class={cn(
                     "text-2xl font-bold text-white/50 drop-shadow-text text-center",
                     {
-                      "text-red-500": game.players[i].hand_value > 21,
+                      "text-red-500 wobble": game.players[i].hand_value > 21,
                     }
                   )}
                 >
@@ -79,15 +81,17 @@
                 <div class="relative w-40 h-32">
                   {#each game.enemies[i].draw_pile as _card, index}
                     <div
-                      class="absolute"
-                      style="right: {index * 6}px; z-index: {index};"
+                      class="absolute fade-in-top"
+                      style="right: {index *
+                        6}px; z-index: {index}; animation-delay: {index *
+                        0.1}s;"
                     >
                       <Card evil />
                     </div>
                   {/each}
                 </div>
               {/if}
-              <EnemyIcon enemy={game.enemies[i]} />
+              <EnemyIcon enemy={game.enemies[i]} class="fade-in-right" />
             {/if}
           </div>
         </div>
@@ -125,3 +129,74 @@
     </div>
   </div>
 </div>
+
+<style>
+  :global(.fade-in-top) {
+    opacity: 0;
+    transform: translateY(-30px);
+    animation: fadeInTop 0.6s ease-out forwards;
+  }
+
+  @keyframes fadeInTop {
+    0% {
+      opacity: 0;
+      transform: translateY(-15px);
+    }
+    10% {
+      opacity: 1;
+      transform: translateY(-10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  :global(.fade-in-right) {
+    opacity: 0;
+    transform: translateX(30px);
+    animation: fadeInRight 0.6s ease-out forwards;
+  }
+
+  @keyframes fadeInRight {
+    0% {
+      opacity: 0;
+      transform: translateX(15px);
+    }
+    10% {
+      opacity: 1;
+      transform: translateX(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .wobble {
+    animation: wobble 0.8s both;
+  }
+
+  @keyframes wobble {
+    0%,
+    100% {
+      transform: translateX(0%);
+      transform-origin: 50% 50%;
+    }
+    15% {
+      transform: translateX(-15px) rotate(-6deg);
+    }
+    30% {
+      transform: translateX(7px) rotate(6deg);
+    }
+    45% {
+      transform: translateX(-7px) rotate(-3.6deg);
+    }
+    60% {
+      transform: translateX(4px) rotate(2.4deg);
+    }
+    75% {
+      transform: translateX(-3px) rotate(-1.2deg);
+    }
+  }
+</style>

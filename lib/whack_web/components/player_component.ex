@@ -11,6 +11,7 @@ defmodule WhackWeb.PlayerComponent do
     ~H"""
     <div class="h-full">
       <.svelte
+        ssr={false}
         name="Player"
         socket={@socket}
         props={%{game: @game, player: @player, myself: @myself.cid}}

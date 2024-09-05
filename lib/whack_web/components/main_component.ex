@@ -7,6 +7,7 @@ defmodule WhackWeb.MainComponent do
     ~H"""
     <div class="h-full">
       <.svelte
+        ssr={false}
         name="Main"
         socket={@socket}
         props={%{game: @game, myself: @myself.cid, debug: @debug}}

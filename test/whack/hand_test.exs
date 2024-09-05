@@ -22,6 +22,16 @@ defmodule Whack.HandTest do
       assert Hand.calculate_value_of_hand(hand) == 30
     end
 
+    test "calculates the value of a hand with a queen, 3, and 2" do
+      hand = [
+        Card.new(:spades, 12, :face),
+        Card.new(:spaces, 3, :number),
+        Card.new(:spades, 2, :number)
+      ]
+
+      assert Hand.calculate_value_of_hand(hand) == 15
+    end
+
     test "calculates the value of a hand with an ace as 11" do
       hand = [
         Card.new(:clubs, 1, :number),
