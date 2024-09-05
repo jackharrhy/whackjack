@@ -1,5 +1,6 @@
 import { fontFamily } from "tailwindcss/defaultTheme";
 import plugin from "tailwindcss/plugin";
+import tailwindScrollbar from "tailwind-scrollbar";
 
 /** @type {import('tailwindcss').Config} */
 const config = {
@@ -91,6 +92,7 @@ const config = {
         ".phx-change-loading &",
       ])
     ),
+    tailwindScrollbar,
   ],
 };
 

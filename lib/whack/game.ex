@@ -33,9 +33,7 @@ defmodule Whack.Game do
   def new(code) do
     struct!(
       __MODULE__,
-      messages: [
-        "game #{code} created"
-      ],
+      messages: ["game #{code} created"],
       code: code
     )
   end

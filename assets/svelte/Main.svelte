@@ -64,8 +64,10 @@
     </div>
   </div>
 
-  <div class="flex flex-col p-3 h-full overflow-y-auto">
-    <div class="flex flex-col bg-stone-900/40 text-white p-3 h-full">
+  <div class="flex flex-col p-3 h-full w-[20rem]">
+    <div
+      class="flex flex-col bg-stone-900/40 text-white p-3 h-full overflow-y-auto scrollbar scrollbar-thumb-stone-700 scrollbar-track-stone-900"
+    >
       {#if debug}
         <Button variant="outline" class="w-full" on:click={resetGame}
           ><span class="text-xs text-black">reset game</span></Button
