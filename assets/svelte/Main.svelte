@@ -42,7 +42,7 @@
                   {#each game.players[i].draw_pile as _card, index}
                     <div
                       class="absolute"
-                      style="left: {index * 4}px; z-index: {index};"
+                      style="left: {index * 6}px; z-index: {index};"
                     >
                       <Card />
                     </div>
@@ -56,9 +56,23 @@
             {/if}
           </div>
 
-          {#if i < game.enemies.length}
-            <EnemyIcon enemy={game.enemies[i]} />
-          {/if}
+          <div class="flex items-center gap-4">
+            {#if i < game.enemies.length}
+              {#if game.enemies[i].draw_pile && game.enemies[i].draw_pile.length > 0}
+                <div class="relative w-40 h-32">
+                  {#each game.enemies[i].draw_pile as _card, index}
+                    <div
+                      class="absolute"
+                      style="right: {index * 6}px; z-index: {index};"
+                    >
+                      <Card evil />
+                    </div>
+                  {/each}
+                </div>
+              {/if}
+              <EnemyIcon enemy={game.enemies[i]} />
+            {/if}
+          </div>
         </div>
       {/each}
     </div>

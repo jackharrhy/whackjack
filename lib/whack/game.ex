@@ -78,13 +78,11 @@ defmodule Whack.Game do
     end
   end
 
-  @spec add_enemy(t(), String.t(), String.t()) :: {:ok, t(), Enemy.t()} | {:error, atom()}
-  def add_enemy(game, enemy_id, enemy_name) do
+  @spec add_enemy(t(), Enemy.t()) :: {:ok, t(), Enemy.t()} | {:error, atom()}
+  def add_enemy(game, enemy) do
     if length(game.enemies) >= @max_enemies do
       {:error, :max_enemies_reached}
     else
-      enemy = Enemy.new(enemy_id, enemy_name)
-
       Logger.debug("#{game.code}: Enemy #{enemy} appeared")
 
       game =
@@ -119,11 +117,19 @@ defmodule Whack.Game do
 
       enemy_names = ["evil", "monster", "creepy", "spooky"]
 
+      suits = suits |> Enum.shuffle()
+
       game_states =
-        Enum.reduce(1..4, [hd(game_states) | game_states], fn i, [game | games] ->
+        Enum.reduce(Enum.zip([1..4, suits]), [hd(game_states) | game_states], fn {i, suit},
+                                                                                 [game | games] ->
           enemy_id = "enemy_#{i}"
           enemy_name = Enum.at(enemy_names, i - 1)
-          {:ok, updated_game, _enemy} = add_enemy(game, enemy_id, enemy_name)
+
+          enemy =
+            Enemy.new(enemy_id, enemy_name)
+            |> Map.put(:draw_pile, suit)
+
+          {:ok, updated_game, _enemy} = add_enemy(game, enemy)
           [updated_game | [game | games]]
         end)
 

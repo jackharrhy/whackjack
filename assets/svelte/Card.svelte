@@ -1,8 +1,12 @@
 <script lang="ts">
   export let card = null;
+  export let evil = false;
 
   const cardBase = "/images/Cards/";
-  const cardBack = `${cardBase}cardBack_red4.png`;
+  const cardBackNice = `${cardBase}cardBack_blue4.png`;
+  const cardBackEvil = `${cardBase}cardBack_red4.png`;
+
+  $: cardBack = evil ? cardBackEvil : cardBackNice;
 </script>
 
 <div class="w-24 h-32 relative">
