@@ -2,6 +2,7 @@ defmodule Whack.Game do
   require Logger
 
   alias Whack.Player
+  alias Whack.Enemy
   alias Whack.Deck
 
   @derive Jason.Encoder
@@ -9,10 +10,12 @@ defmodule Whack.Game do
             code: nil,
             state: :setup,
             players: [],
+            enemies: [],
             turn: nil,
             host: nil
 
   @max_players 4
+  @max_enemies 4
 
   @type game_state :: :setup | :playing | :busy
 
@@ -21,6 +24,7 @@ defmodule Whack.Game do
           code: String.t() | nil,
           state: game_state,
           players: [Player.t()],
+          enemies: [Enemy.t()],
           host: String.t() | nil,
           turn: String.t() | nil
         }
@@ -76,6 +80,24 @@ defmodule Whack.Game do
     end
   end
 
+  @spec add_enemy(t(), String.t(), String.t()) :: {:ok, t(), Enemy.t()} | {:error, atom()}
+  def add_enemy(game, enemy_id, enemy_name) do
+    if length(game.enemies) >= @max_enemies do
+      {:error, :max_enemies_reached}
+    else
+      enemy = Enemy.new(enemy_id, enemy_name)
+
+      Logger.debug("#{game.code}: Enemy #{enemy} appeared")
+
+      game =
+        game
+        |> Map.put(:enemies, game.enemies ++ [enemy])
+        |> new_message("enemy #{enemy} appeared")
+
+      {:ok, game, enemy}
+    end
+  end
+
   @spec start_game(t(), String.t()) :: {:ok, [{integer(), t()}]} | {:error, atom()}
   def start_game(game, player_id) do
     with :ok <- is_player_host(game, player_id),
@@ -97,13 +119,23 @@ defmodule Whack.Game do
           [next_game | [game | games]]
         end)
 
+      enemy_names = ["evil", "monster", "creepy", "spooky"]
+
+      game_states =
+        Enum.reduce(1..4, [hd(game_states) | game_states], fn i, [game | games] ->
+          enemy_id = "enemy_#{i}"
+          enemy_name = Enum.at(enemy_names, i - 1)
+          {:ok, updated_game, _enemy} = add_enemy(game, enemy_id, enemy_name)
+          [updated_game | [game | games]]
+        end)
+
       [game | _] = game_states
-      game = Map.put(game, :state, :playing)
+      game = game |> Map.put(:state, :playing) |> Map.put(:turn, game.host)
       game_states = [game | game_states]
 
       state_changes =
         game_states
-        |> Enum.map(&{500, &1})
+        |> Enum.map(&{250, &1})
         |> Enum.reverse()
 
       {:ok, state_changes}

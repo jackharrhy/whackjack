@@ -22,6 +22,7 @@ const config = {
     extend: {
       dropShadow: {
         text: "0 1.2px 1.2px rgba(0, 0, 0, 0.8)",
+        evil: "0 1.2px 1.2px rgba(255, 0, 0, 0.8)",
       },
       backgroundImage: {
         "felt": "url('/images/Board/felt_green.jpg')",

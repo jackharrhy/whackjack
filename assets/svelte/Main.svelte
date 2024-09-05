@@ -4,6 +4,7 @@
   import { cn } from "$lib/utils";
   import Card from "./Card.svelte";
   import Button from "./components/ui/button/button.svelte";
+  import EnemyIcon from "./EnemyIcon.svelte";
 
   export let game;
   export let debug;
@@ -27,28 +28,36 @@
 
 <div class="bg-felt bg-contain flex h-full p-2">
   <div class="flex-1 flex gap-8 py-6 px-12">
-    <div class="grid grid-rows-4 gap-4">
+    <div class="grid grid-rows-4 gap-4 w-full">
       {#each Array(4) as _, i}
-        <div class="flex gap-4 justify-center items-center">
-          {#if i < game.players.length}
-            <PlayerIcon
-              player={game.players[i]}
-              isPlayersTurn={isPlayersTurn(game.players[i])}
-            />
-            {#if game.players[i].draw_pile && game.players[i].draw_pile.length > 0}
-              <div class="relative w-24 h-32">
-                {#each game.players[i].draw_pile as _card, index}
-                  <div
-                    class="absolute"
-                    style="left: {index * 4}px; z-index: {index};"
-                  >
-                    <Card />
-                  </div>
-                {/each}
-              </div>
+        <div class="flex gap-4 items-center justify-between">
+          <div class="flex items-center gap-4">
+            {#if i < game.players.length}
+              <PlayerIcon
+                player={game.players[i]}
+                isPlayersTurn={isPlayersTurn(game.players[i])}
+              />
+              {#if game.players[i].draw_pile && game.players[i].draw_pile.length > 0}
+                <div class="relative w-40 h-32">
+                  {#each game.players[i].draw_pile as _card, index}
+                    <div
+                      class="absolute"
+                      style="left: {index * 4}px; z-index: {index};"
+                    >
+                      <Card />
+                    </div>
+                  {/each}
+                </div>
+              {/if}
+            {:else}
+              <p class="text-white/50 drop-shadow-text text-center">
+                waiting...
+              </p>
             {/if}
-          {:else}
-            <p class="text-white/50 drop-shadow-text text-center">waiting...</p>
+          </div>
+
+          {#if i < game.enemies.length}
+            <EnemyIcon enemy={game.enemies[i]} />
           {/if}
         </div>
       {/each}

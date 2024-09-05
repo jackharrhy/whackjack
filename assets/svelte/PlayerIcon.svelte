@@ -5,7 +5,7 @@
   export let isPlayersTurn;
 </script>
 
-<div>
+<div class="flex flex-col items-center gap-1 w-24 pt-3">
   {#if player.image_path}
     <img
       src={player.image_path}
@@ -16,7 +16,7 @@
       )}
     />
   {:else}
-    <span class="text-4xl">{player.art}</span>
+    <span class="text-6xl">{player.art}</span>
   {/if}
   <p class="text-white drop-shadow-text text-center">
     {player.name}
