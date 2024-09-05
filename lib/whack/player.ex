@@ -5,7 +5,11 @@ defmodule Whack.Player do
     :name,
     :art,
     :image_path,
-    :draw_pile
+    :draw_pile,
+    :hand,
+    :hand_value,
+    :discard_pile,
+    :health
   ]
 
   alias Whack.Card
@@ -15,7 +19,11 @@ defmodule Whack.Player do
           name: String.t(),
           art: String.t(),
           image_path: String.t() | nil,
-          draw_pile: [Card.t()]
+          draw_pile: [Card.t()],
+          hand: [Card.t()],
+          hand_value: integer(),
+          discard_pile: [Card.t()],
+          health: integer()
         }
 
   @art [
@@ -38,7 +46,11 @@ defmodule Whack.Player do
       name: name,
       art: random_art,
       image_path: image_path,
-      draw_pile: []
+      draw_pile: [],
+      hand: [],
+      hand_value: 0,
+      discard_pile: [],
+      health: 100
     })
   end
 end

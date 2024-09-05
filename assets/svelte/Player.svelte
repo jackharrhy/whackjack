@@ -2,6 +2,7 @@
   import { Button } from "$lib/components/ui/button";
   import { Toaster } from "$lib/components/ui/sonner";
   import { toast } from "svelte-sonner";
+  import { cn } from "./utils";
 
   export let player;
   export let game;
@@ -10,6 +11,8 @@
   export let myself;
 
   $: isPlayerHost = game.host === player.id;
+  $: isMyTurn = game.turn === player.id;
+  $: isBusted = player.hand_value > 21;
 
   if (live) {
     live.handleEvent("flash", (event) => {
@@ -21,6 +24,14 @@
 
   function startGame() {
     live.pushEventTo(myself, "start-game", {});
+  }
+
+  function hit() {
+    live.pushEventTo(myself, "hit", {});
+  }
+
+  function stand() {
+    live.pushEventTo(myself, "stand", {});
   }
 </script>
 
@@ -47,5 +58,22 @@
         waiting for host to start the game...
       </p>
     {/if}
+  {/if}
+
+  {#if game.state === "playing"}
+    <div class="flex flex-col gap-4 w-64">
+      <Button
+        class={cn("text-2xl h-16", { "bg-red-500": isBusted })}
+        disabled={!isMyTurn || isBusted}
+        variant="outline"
+        on:click={() => hit()}>hit</Button
+      >
+      <Button
+        class="text-2xl h-16"
+        disabled={!isMyTurn}
+        variant="outline"
+        on:click={() => stand()}>stand</Button
+      >
+    </div>
   {/if}
 </div>

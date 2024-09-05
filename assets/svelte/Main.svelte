@@ -31,7 +31,7 @@
     <div class="grid grid-rows-4 gap-4 w-full">
       {#each Array(4) as _, i}
         <div class="flex gap-4 items-center justify-between">
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-8">
             {#if i < game.players.length}
               <PlayerIcon
                 player={game.players[i]}
@@ -49,6 +49,23 @@
                   {/each}
                 </div>
               {/if}
+              {#if game.players[i].hand && game.players[i].hand.length > 0}
+                <div class="flex gap-2">
+                  {#each game.players[i].hand as card}
+                    <Card {card} />
+                  {/each}
+                </div>
+                <p
+                  class={cn(
+                    "text-2xl font-bold text-white/50 drop-shadow-text text-center",
+                    {
+                      "text-red-500": game.players[i].hand_value > 21,
+                    }
+                  )}
+                >
+                  {game.players[i].hand_value} / 21
+                </p>
+              {/if}
             {:else}
               <p class="text-white/50 drop-shadow-text text-center">
                 waiting...
@@ -56,7 +73,7 @@
             {/if}
           </div>
 
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-8">
             {#if i < game.enemies.length}
               {#if game.enemies[i].draw_pile && game.enemies[i].draw_pile.length > 0}
                 <div class="relative w-40 h-32">

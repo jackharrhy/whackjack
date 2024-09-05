@@ -33,6 +33,9 @@ defmodule Whack.GameServer do
   def start_game(code, player_id), do: call_by_code(code, {:start_game, player_id})
   def reset_game(code), do: call_by_code(code, :reset_game)
 
+  def hit(code, player_id), do: call_by_code(code, {:hit, player_id})
+  def stand(code, player_id), do: call_by_code(code, {:stand, player_id})
+
   def broadcast!(code, event, payload \\ %{}) do
     Phoenix.PubSub.broadcast!(Whack.PubSub, code, %{event: event, payload: payload})
   end
@@ -77,6 +80,30 @@ defmodule Whack.GameServer do
     {:ok, game} = Game.reset_game(state.game)
     broadcast_game_updated!(game.code, game)
     {:reply, {:ok, game}, %{state | game: game}}
+  end
+
+  @impl GenServer
+  def handle_call({:hit, player_id}, _from, state) do
+    case Game.hit(state.game, player_id) do
+      {:ok, game} ->
+        broadcast_game_updated!(game.code, game)
+        {:reply, {:ok, game}, %{state | game: game}}
+
+      {:error, _} = error ->
+        {:reply, error, state}
+    end
+  end
+
+  @impl GenServer
+  def handle_call({:stand, player_id}, _from, state) do
+    case Game.stand(state.game, player_id) do
+      {:ok, game} ->
+        broadcast_game_updated!(game.code, game)
+        {:reply, {:ok, game}, %{state | game: game}}
+
+      {:error, _} = error ->
+        {:reply, error, state}
+    end
   end
 
   @impl GenServer

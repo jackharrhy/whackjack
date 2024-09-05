@@ -21,4 +21,7 @@
   <p class="text-white drop-shadow-text text-center">
     {player.name}
   </p>
+  <p class="text-white drop-shadow-text text-center text-sm">
+    {player.health} ❤️
+  </p>
 </div>

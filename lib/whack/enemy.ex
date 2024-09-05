@@ -6,7 +6,9 @@ defmodule Whack.Enemy do
     :art,
     :draw_pile,
     :hand,
-    :discard_pile
+    :hand_value,
+    :discard_pile,
+    :health
   ]
 
   alias Whack.Card
@@ -17,7 +19,9 @@ defmodule Whack.Enemy do
           art: String.t(),
           draw_pile: [Card.t()],
           hand: [Card.t()],
-          discard_pile: [Card.t()]
+          hand_value: integer(),
+          discard_pile: [Card.t()],
+          health: integer()
         }
 
   @art [
@@ -38,8 +42,8 @@ defmodule Whack.Enemy do
     "🧞‍♀️"
   ]
 
-  @spec new(String.t(), String.t()) :: t()
-  def new(id, name) do
+  @spec new(String.t(), String.t(), integer()) :: t()
+  def new(id, name, health) do
     random_art = Enum.random(@art)
 
     struct!(__MODULE__, %{
@@ -48,7 +52,9 @@ defmodule Whack.Enemy do
       art: random_art,
       draw_pile: [],
       hand: [],
-      discard_pile: []
+      hand_value: 0,
+      discard_pile: [],
+      health: health
     })
   end
 end

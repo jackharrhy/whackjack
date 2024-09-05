@@ -4,7 +4,12 @@
 
 <div class="flex flex-col items-center gap-2 w-24">
   <span class="text-6xl">{enemy.art}</span>
-  <p class="text-red-300 drop-shadow-evil text-center">
-    {enemy.name}
-  </p>
+  <div class="flex flex-col gap-1">
+    <p class="text-red-300 drop-shadow-evil text-center">
+      {enemy.name}
+    </p>
+    <p class="text-white drop-shadow-text text-center text-sm">
+      {enemy.health} ❤️
+    </p>
+  </div>
 </div>
