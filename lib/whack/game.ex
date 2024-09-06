@@ -174,10 +174,13 @@ defmodule Whack.Game do
 
       games =
         if busted_this_turn do
-          game = game |> new_message("#{player.name} busted!")
-          perform_enemy_turns(game, false)
+          game =
+            game
+            |> new_message("#{player.name} busted!")
+
+          perform_enemy_turns(game, player, player_can_make_move: false)
         else
-          perform_enemy_turns(game, true)
+          perform_enemy_turns(game, player, player_can_make_move: true)
         end
 
       [first_game | _] = games
@@ -211,7 +214,7 @@ defmodule Whack.Game do
 
       game = game |> update_player(player) |> new_message("player #{player_id} stood")
 
-      games = game |> perform_enemy_turns(false)
+      games = perform_enemy_turns(game, player, player_can_make_move: false)
 
       [first_game | _] = games
 
@@ -333,48 +336,56 @@ defmodule Whack.Game do
     end)
   end
 
-  @spec perform_enemy_turns(t(), boolean()) :: [t()]
-  defp perform_enemy_turns(game, player_can_make_move) do
-    Enum.reduce_while(game.enemies, [game], fn previous_enemy, [current_game | _] = acc ->
-      case Enemy.perform_turn(previous_enemy) do
-        {:ok, enemy} ->
-          next_game = current_game |> update_enemy(enemy)
+  defp perform_enemy_turns(game, player, opts \\ []) do
+    player_can_make_move = Keyword.get(opts, :player_can_make_move, true)
+    perform_enemy_turns(game, player, player_can_make_move, [])
+  end
 
-          case enemy.turn_state do
-            :hit ->
-              [top_card | _] = enemy.hand
-              next_game = next_game |> new_message("#{enemy.name} draws #{top_card}")
+  defp perform_enemy_turns(game, player, player_can_make_move, acc) do
+    {:ok, enemy} = get_players_enemy(game, player.id)
 
-              if player_can_make_move do
-                {:halt, [next_game | acc]}
-              else
-                {:cont, [next_game | acc]}
-              end
+    case enemy.turn_state do
+      state when state in [:busted, :stand] ->
+        [game | acc]
 
-            :stand ->
-              next_game =
-                if previous_enemy.turn_state != :stand do
-                  next_game |> new_message("#{enemy.name} stood")
-                else
-                  next_game
-                end
+      _ ->
+        {game, acc} = perform_enemy_turn(game, player, acc)
+        game = game |> update_enemy(enemy)
 
-              {:halt, [next_game | acc]}
+        if player_can_make_move do
+          [game | acc]
+        else
+          perform_enemy_turns(game, player, player_can_make_move, acc)
+        end
+    end
+  end
 
-            :busted ->
-              next_game =
-                if previous_enemy.turn_state != :busted do
-                  next_game |> new_message("#{enemy.name} busted!")
-                else
-                  next_game
-                end
+  defp perform_enemy_turn(game, player, acc) do
+    {:ok, enemy} = get_players_enemy(game, player.id)
+    {:ok, updated_enemy} = Enemy.perform_turn(enemy)
+    game = game |> update_enemy(updated_enemy)
 
-              {:halt, [next_game | acc]}
+    game =
+      case updated_enemy.turn_state do
+        :hit ->
+          [top_card | _] = updated_enemy.hand
+          game |> new_message("#{updated_enemy.name} draws #{top_card}")
+
+        :stand ->
+          if enemy.turn_state != :stand do
+            game |> new_message("#{updated_enemy.name} stood")
+          else
+            game
           end
 
-        {:error, _} ->
-          {:halt, acc}
+        :busted ->
+          if enemy.turn_state != :busted do
+            game |> new_message("#{updated_enemy.name} busted!")
+          else
+            game
+          end
       end
-    end)
+
+    [game | acc]
   end
 end
