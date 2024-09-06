@@ -1,30 +1,9 @@
 defmodule Whack.Player do
   @derive Jason.Encoder
-  defstruct [
-    :id,
-    :name,
-    :art,
-    :image_path,
-    :draw_pile,
-    :hand,
-    :hand_value,
-    :discard_pile,
-    :health
-  ]
 
-  alias Whack.Card
+  alias Whack.Character
 
-  @type t :: %__MODULE__{
-          id: String.t(),
-          name: String.t(),
-          art: String.t(),
-          image_path: String.t() | nil,
-          draw_pile: [Card.t()],
-          hand: [Card.t()],
-          hand_value: integer(),
-          discard_pile: [Card.t()],
-          health: integer()
-        }
+  defstruct [:image_path | Map.keys(%Character{})]
 
   @art [
     "🐸",
@@ -37,26 +16,21 @@ defmodule Whack.Player do
     "🐶"
   ]
 
-  @spec new(String.t(), String.t(), String.t() | nil) :: t()
+  @type t ::
+          %__MODULE__{
+            image_path: String.t() | nil
+          }
+          | Character.t()
+
   def new(id, name, image_path) do
     random_art = Enum.random(@art)
-
-    struct!(__MODULE__, %{
-      id: id,
-      name: name,
-      art: random_art,
-      image_path: image_path,
-      draw_pile: [],
-      hand: [],
-      hand_value: 0,
-      discard_pile: [],
-      health: 100
-    })
+    character = Character.new(__MODULE__, id, name, random_art)
+    Map.put(character, :image_path, image_path)
   end
+
+  defdelegate perform_hit(player), to: Character
 end
 
 defimpl String.Chars, for: Whack.Player do
-  def to_string(player) do
-    "#{player.name} #{player.art}"
-  end
+  def to_string(player), do: "#{player.name} #{player.art}"
 end

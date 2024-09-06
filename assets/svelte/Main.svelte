@@ -36,6 +36,7 @@
               <PlayerIcon
                 player={game.players[i]}
                 isPlayersTurn={isPlayersTurn(game.players[i])}
+                class="fade-in-left"
               />
               {#if game.players[i].draw_pile && game.players[i].draw_pile.length > 0}
                 <div class="relative w-40 h-32">
@@ -77,6 +78,23 @@
 
           <div class="flex items-center gap-8">
             {#if i < game.enemies.length}
+              {#if game.enemies[i].hand && game.enemies[i].hand.length > 0}
+                <div class="flex gap-2">
+                  {#each game.enemies[i].hand as card}
+                    <Card {card} />
+                  {/each}
+                </div>
+                <p
+                  class={cn(
+                    "text-2xl font-bold text-white/50 drop-shadow-text text-center",
+                    {
+                      "text-red-500 wobble": game.enemies[i].hand_value > 21,
+                    }
+                  )}
+                >
+                  {game.enemies[i].hand_value} / 21
+                </p>
+              {/if}
               {#if game.enemies[i].draw_pile && game.enemies[i].draw_pile.length > 0}
                 <div class="relative w-40 h-32">
                   {#each game.enemies[i].draw_pile as _card, index}
@@ -197,6 +215,27 @@
     }
     75% {
       transform: translateX(-3px) rotate(-1.2deg);
+    }
+  }
+
+  :global(.fade-in-left) {
+    opacity: 0;
+    transform: translateX(-30px);
+    animation: fadeInLeft 0.6s ease-out forwards;
+  }
+
+  @keyframes fadeInLeft {
+    0% {
+      opacity: 0;
+      transform: translateX(-15px);
+    }
+    10% {
+      opacity: 1;
+      transform: translateX(-10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
     }
   }
 </style>

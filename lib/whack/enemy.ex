@@ -1,28 +1,9 @@
 defmodule Whack.Enemy do
   @derive Jason.Encoder
-  defstruct [
-    :id,
-    :name,
-    :art,
-    :draw_pile,
-    :hand,
-    :hand_value,
-    :discard_pile,
-    :health
-  ]
 
-  alias Whack.Card
+  alias Whack.Character
 
-  @type t :: %__MODULE__{
-          id: String.t(),
-          name: String.t(),
-          art: String.t(),
-          draw_pile: [Card.t()],
-          hand: [Card.t()],
-          hand_value: integer(),
-          discard_pile: [Card.t()],
-          health: integer()
-        }
+  defstruct [:stands_on | Map.keys(%Character{})]
 
   @art [
     "👹",
@@ -42,25 +23,31 @@ defmodule Whack.Enemy do
     "🧞‍♀️"
   ]
 
-  @spec new(String.t(), String.t(), integer()) :: t()
-  def new(id, name, health) do
-    random_art = Enum.random(@art)
+  @type t ::
+          %__MODULE__{
+            stands_on: integer()
+          }
+          | Character.t()
 
-    struct!(__MODULE__, %{
-      id: id,
-      name: name,
-      art: random_art,
-      draw_pile: [],
-      hand: [],
-      hand_value: 0,
-      discard_pile: [],
-      health: health
-    })
+  def new(id, name, health, stands_on) do
+    random_art = Enum.random(@art)
+    character = Character.new(__MODULE__, id, name, random_art, health: health)
+    Map.put(character, :stands_on, stands_on)
   end
+
+  def perform_turn(%__MODULE__{turn_state: :hit} = enemy) do
+    if enemy.hand_value >= enemy.stands_on do
+      {:ok, Map.put(enemy, :turn_state, :stand)}
+    else
+      Character.perform_hit(enemy)
+    end
+  end
+
+  def perform_turn(%__MODULE__{turn_state: :stand} = enemy), do: {:ok, enemy}
+  def perform_turn(%__MODULE__{turn_state: :busted} = enemy), do: {:ok, enemy}
+  def perform_turn(_enemy), do: {:error, :invalid_turn_state}
 end
 
 defimpl String.Chars, for: Whack.Enemy do
-  def to_string(enemy) do
-    "#{enemy.name} #{enemy.art}"
-  end
+  def to_string(enemy), do: "#{enemy.name} #{enemy.art}"
 end

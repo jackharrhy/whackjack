@@ -5,7 +5,9 @@
   export let isPlayersTurn;
 </script>
 
-<div class="flex flex-col items-center gap-1 w-24 pt-3">
+<div
+  class={cn("flex flex-col items-center gap-1 w-24 pt-3", $$restProps.class)}
+>
   {#if player.image_path}
     <img
       src={player.image_path}

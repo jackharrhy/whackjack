@@ -2,13 +2,17 @@ defmodule Whack.GameTest do
   use ExUnit.Case, async: true
   alias Whack.Game
 
+  def add_4_players_to_game(game) do
+    {:ok, game, _player} = Game.add_player(game, "player1", "Alice", nil)
+    {:ok, game, _player} = Game.add_player(game, "player2", "Bob", nil)
+    {:ok, game, _player} = Game.add_player(game, "player3", "Charlie", nil)
+    {:ok, game, _player} = Game.add_player(game, "player4", "David", nil)
+    game
+  end
+
   describe "start_game/2" do
     test "successfully starts the game with max players" do
-      game = Game.new("ABCD")
-      {:ok, game, _} = Game.add_player(game, "player1", "Alice", nil)
-      {:ok, game, _} = Game.add_player(game, "player2", "Bob", nil)
-      {:ok, game, _} = Game.add_player(game, "player3", "Charlie", nil)
-      {:ok, game, _} = Game.add_player(game, "player4", "David", nil)
+      game = Game.new("ABCD") |> add_4_players_to_game()
 
       assert game.host == "player1"
       assert game.state == :setup

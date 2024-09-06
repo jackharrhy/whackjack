@@ -1,6 +1,7 @@
 defmodule Whack.Game do
   require Logger
 
+  alias Whack.Character
   alias Whack.Player
   alias Whack.Enemy
   alias Whack.Deck
@@ -10,7 +11,6 @@ defmodule Whack.Game do
   defstruct messages: [],
             code: nil,
             state: :setup,
-            turn_state: nil,
             players: [],
             enemies: [],
             turn: nil,
@@ -20,13 +20,11 @@ defmodule Whack.Game do
   @max_enemies 4
 
   @type game_state :: :setup | :playing | :busy
-  @type turn_state :: :hit | :stand | :busted
 
   @type t :: %__MODULE__{
           messages: [String.t()],
           code: String.t() | nil,
           state: game_state,
-          turn_state: turn_state,
           players: [Player.t()],
           enemies: [Enemy.t()],
           host: String.t() | nil,
@@ -129,8 +127,10 @@ defmodule Whack.Game do
           enemy_id = "enemy_#{i}"
           enemy_name = Enum.at(enemy_names, i - 1)
 
+          suit = suit |> Enum.shuffle()
+
           enemy =
-            Enemy.new(enemy_id, enemy_name, 10)
+            Enemy.new(enemy_id, enemy_name, 10, 14)
             |> Map.put(:draw_pile, suit)
 
           {:ok, updated_game, _enemy} = add_enemy(game, enemy)
@@ -143,7 +143,6 @@ defmodule Whack.Game do
         game
         |> Map.put(:state, :playing)
         |> Map.put(:turn, game.host)
-        |> Map.put(:turn_state, :hit)
 
       game_states = [game | game_states]
 
@@ -158,34 +157,33 @@ defmodule Whack.Game do
 
   @spec hit(t(), String.t()) :: {:ok, t()} | {:error, atom()}
   def hit(game, player_id) do
-    {:ok, player} = get_player_by_id(game, player_id)
-
-    with :ok <- is_game_in_state(game, :playing),
+    with {:ok, player} <- get_player_by_id(game, player_id),
+         :ok <- is_game_in_state(game, :playing),
          :ok <- is_players_turn(game, player_id),
-         :ok <- is_turn_in_state(game, :hit),
-         :ok <- can_draw_from_draw_pile(player),
+         :ok <- Character.is_turn_in_state(player, :hit),
+         :ok <- Character.can_draw_from_draw_pile(player),
          :ok <- Hand.hand_not_busted(player.hand) do
-      [top_card | draw_pile] = player.draw_pile
-      hand = [top_card | player.hand || []]
-      hand_value = Hand.calculate_value_of_hand(hand)
-      busted_this_turn = !Hand.hand_not_busted?(hand)
-
-      player =
-        player
-        |> Map.put(:draw_pile, draw_pile)
-        |> Map.put(:hand, hand)
-        |> Map.put(:hand_value, hand_value)
-
-      game = game |> update_player(player) |> new_message("#{player.name} drew #{top_card}")
+      [top_card | _] = player.draw_pile
+      {:ok, player} = player |> Player.perform_hit()
+      busted_this_turn = !Hand.hand_not_busted?(player.hand)
 
       game =
-        if busted_this_turn do
-          game |> new_message("#{player.name} busted!") |> Map.put(:turn_state, :busted)
-        else
-          game
-        end
+        game
+        |> update_player(player)
+        |> new_message("#{player.name} drew #{top_card}")
 
-      {:ok, game}
+      games =
+        if busted_this_turn do
+          game = game |> new_message("#{player.name} busted!")
+          perform_enemy_turns(game, false)
+        else
+          perform_enemy_turns(game, true)
+        end
+        |> Enum.reverse()
+
+      state_changes = games |> Enum.map(&{250, &1})
+
+      {:ok, state_changes}
     end
   end
 
@@ -216,15 +214,6 @@ defmodule Whack.Game do
       :ok
     else
       {:error, :game_not_in_state}
-    end
-  end
-
-  @spec is_turn_in_state(t(), turn_state) :: :ok | {:error, atom()}
-  def is_turn_in_state(game, state) do
-    if game.turn_state == state do
-      :ok
-    else
-      {:error, :turn_not_in_state}
     end
   end
 
@@ -275,26 +264,66 @@ defmodule Whack.Game do
     player_id == game.turn
   end
 
-  @spec can_draw_from_draw_pile(Player.t()) :: :ok | {:error, atom()}
-  def can_draw_from_draw_pile(player) do
-    if can_draw_from_draw_pile?(player) do
-      :ok
-    else
-      {:error, :cannot_draw_from_draw_pile}
-    end
-  end
-
-  @spec can_draw_from_draw_pile?(Player.t()) :: boolean()
-  def can_draw_from_draw_pile?(player) do
-    length(player.draw_pile) > 0
-  end
-
   @spec update_player(t(), Player.t()) :: t()
   def update_player(game, player) do
     update_in(game.players, fn players ->
       Enum.map(players, fn p ->
         if p.id == player.id, do: player, else: p
       end)
+    end)
+  end
+
+  @spec update_enemy(t(), Enemy.t()) :: t()
+  def update_enemy(game, enemy) do
+    update_in(game.enemies, fn enemies ->
+      Enum.map(enemies, fn e ->
+        if e.id == enemy.id, do: enemy, else: e
+      end)
+    end)
+  end
+
+  @spec perform_enemy_turns(t(), boolean()) :: [t()]
+  defp perform_enemy_turns(game, player_can_make_move) do
+    Enum.reduce_while(game.enemies, [game], fn previous_enemy, [current_game | _] = acc ->
+      case Enemy.perform_turn(previous_enemy) do
+        {:ok, enemy} ->
+          next_game = current_game |> update_enemy(enemy)
+
+          case enemy.turn_state do
+            :hit ->
+              [top_card | _] = enemy.hand
+              next_game = next_game |> new_message("#{enemy.name} draws #{top_card}")
+
+              if player_can_make_move do
+                {:halt, [next_game | acc]}
+              else
+                {:cont, [next_game | acc]}
+              end
+
+            :stand ->
+              next_game =
+                if previous_enemy.turn_state != :stand do
+                  next_game |> new_message("#{enemy.name} stands")
+                else
+                  next_game
+                end
+
+              {:halt, [next_game | acc]}
+
+            :busted ->
+              next_game =
+                if previous_enemy.turn_state != :busted do
+                  next_game |> new_message("#{enemy.name} busted!")
+                else
+                  next_game
+                end
+
+              {:halt, [next_game | acc]}
+          end
+
+        {:error, _} ->
+          {:halt, acc}
+      end
     end)
   end
 end

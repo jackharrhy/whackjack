@@ -85,9 +85,9 @@ defmodule Whack.GameServer do
   @impl GenServer
   def handle_call({:hit, player_id}, _from, state) do
     case Game.hit(state.game, player_id) do
-      {:ok, game} ->
-        broadcast_game_updated!(game.code, game)
-        {:reply, {:ok, game}, %{state | game: game}}
+      {:ok, state_changes} ->
+        handle_state_changes(state_changes)
+        {:reply, {:ok, state.game}, state}
 
       {:error, _} = error ->
         {:reply, error, state}
@@ -97,9 +97,9 @@ defmodule Whack.GameServer do
   @impl GenServer
   def handle_call({:stand, player_id}, _from, state) do
     case Game.stand(state.game, player_id) do
-      {:ok, game} ->
-        broadcast_game_updated!(game.code, game)
-        {:reply, {:ok, game}, %{state | game: game}}
+      {:ok, state_changes} ->
+        handle_state_changes(state_changes)
+        {:reply, {:ok, state.game}, state}
 
       {:error, _} = error ->
         {:reply, error, state}

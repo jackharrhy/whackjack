@@ -6,8 +6,6 @@ defmodule WhackWeb.ImageUploadController do
   @tmp_dir_folder "whack-uploads"
 
   def create(conn, %{"image" => image}) do
-    IO.inspect(image)
-
     conn =
       conn
       |> fetch_session()

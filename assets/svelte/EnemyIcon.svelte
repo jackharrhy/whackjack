@@ -12,5 +12,8 @@
     <p class="text-white drop-shadow-text text-center text-sm">
       {enemy.health} ❤️
     </p>
+    <p class="text-white drop-shadow-text text-center text-sm">
+      stands on {enemy.stands_on}
+    </p>
   </div>
 </div>
