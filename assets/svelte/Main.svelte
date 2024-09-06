@@ -79,11 +79,6 @@
           <div class="flex items-center gap-8">
             {#if i < game.enemies.length}
               {#if game.enemies[i].hand && game.enemies[i].hand.length > 0}
-                <div class="flex gap-2">
-                  {#each game.enemies[i].hand as card}
-                    <Card {card} />
-                  {/each}
-                </div>
                 <p
                   class={cn(
                     "text-2xl font-bold text-white/50 drop-shadow-text text-center",
@@ -94,6 +89,11 @@
                 >
                   {game.enemies[i].hand_value} / 21
                 </p>
+                <div class="flex gap-2">
+                  {#each game.enemies[i].hand as card}
+                    <Card {card} />
+                  {/each}
+                </div>
               {/if}
               {#if game.enemies[i].draw_pile && game.enemies[i].draw_pile.length > 0}
                 <div class="relative w-40 h-32">
