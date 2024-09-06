@@ -179,9 +179,23 @@ defmodule Whack.Game do
         else
           perform_enemy_turns(game, true)
         end
-        |> Enum.reverse()
 
-      state_changes = games |> Enum.map(&{250, &1})
+      [first_game | _] = games
+
+      {:ok, player} = get_player_by_id(first_game, player_id)
+      {:ok, enemy} = get_players_enemy(first_game, player_id)
+
+      games =
+        if !Character.can_continue_making_moves?(player, enemy) do
+          [
+            first_game |> new_message("#{player.name} vs #{enemy.name} is over")
+            | games
+          ]
+        else
+          games
+        end
+
+      state_changes = games |> Enum.reverse() |> Enum.map(&{250, &1})
 
       {:ok, state_changes}
     end
@@ -190,10 +204,33 @@ defmodule Whack.Game do
   @spec stand(t(), String.t()) :: {:ok, t()} | {:error, atom()}
   def stand(game, player_id) do
     with :ok <- is_game_in_state(game, :playing),
-         :ok <- is_players_turn(game, player_id) do
-      game = game |> new_message("player #{player_id} stood")
+         {:ok, player} <- get_player_by_id(game, player_id),
+         :ok <- is_players_turn(game, player_id),
+         :ok <- Character.is_turn_in_state(player, :hit) do
+      {:ok, player} = Character.perform_stand(player)
 
-      {:ok, game}
+      game = game |> update_player(player) |> new_message("player #{player_id} stood")
+
+      games = game |> perform_enemy_turns(false)
+
+      [first_game | _] = games
+
+      {:ok, player} = get_player_by_id(first_game, player_id)
+      {:ok, enemy} = get_players_enemy(first_game, player_id)
+
+      games =
+        if !Character.can_continue_making_moves?(player, enemy) do
+          [
+            first_game |> new_message("#{player.name} vs #{enemy.name} is over")
+            | games
+          ]
+        else
+          games
+        end
+
+      state_changes = games |> Enum.reverse() |> Enum.map(&{250, &1})
+
+      {:ok, state_changes}
     end
   end
 
@@ -220,6 +257,20 @@ defmodule Whack.Game do
   @spec get_player_index(t(), String.t()) :: non_neg_integer() | nil
   def get_player_index(game, player_id) do
     Enum.find_index(game.players, fn player -> player.id == player_id end)
+  end
+
+  @spec get_players_enemy(t(), String.t()) :: {:ok, Enemy.t()} | {:error, atom()}
+  def get_players_enemy(game, player_id) do
+    case get_player_index(game, player_id) do
+      nil ->
+        {:error, :player_not_found}
+
+      player_index ->
+        case Enum.at(game.enemies, player_index) do
+          nil -> {:error, :enemy_not_found}
+          enemy -> {:ok, enemy}
+        end
+    end
   end
 
   @spec max_players_reached(t()) :: :ok | {:error, atom()}
@@ -303,7 +354,7 @@ defmodule Whack.Game do
             :stand ->
               next_game =
                 if previous_enemy.turn_state != :stand do
-                  next_game |> new_message("#{enemy.name} stands")
+                  next_game |> new_message("#{enemy.name} stood")
                 else
                   next_game
                 end

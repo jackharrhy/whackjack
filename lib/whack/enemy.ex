@@ -37,7 +37,7 @@ defmodule Whack.Enemy do
 
   def perform_turn(%__MODULE__{turn_state: :hit} = enemy) do
     if enemy.hand_value >= enemy.stands_on do
-      {:ok, Map.put(enemy, :turn_state, :stand)}
+      Character.perform_stand(enemy)
     else
       Character.perform_hit(enemy)
     end

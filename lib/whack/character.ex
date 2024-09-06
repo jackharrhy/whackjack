@@ -69,6 +69,8 @@ defmodule Whack.Character do
 
   def perform_hit(_character), do: {:error, :invalid_turn_state}
 
+  def perform_stand(character), do: {:ok, Map.put(character, :turn_state, :stand)}
+
   def is_turn_in_state(%{turn_state: state}, state), do: :ok
   def is_turn_in_state(_, _), do: {:error, :invalid_turn_state}
 
@@ -78,4 +80,14 @@ defmodule Whack.Character do
 
   @spec can_draw_from_draw_pile?(t()) :: boolean()
   def can_draw_from_draw_pile?(character), do: length(character.draw_pile) > 0
+
+  @spec can_continue_making_moves?(t(), t()) :: boolean()
+  def can_continue_making_moves?(character1, character2) do
+    can_hit?(character1) || can_hit?(character2)
+  end
+
+  @spec can_hit?(t()) :: boolean()
+  defp can_hit?(character) do
+    character.turn_state == :hit
+  end
 end
