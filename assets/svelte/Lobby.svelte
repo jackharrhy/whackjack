@@ -5,6 +5,7 @@
   export let name = "";
   export let code = "";
   export let image_path = "";
+  export let error = "";
 
   $: localImage = undefined;
 
@@ -70,6 +71,9 @@
       phx-debounce="500"
     />
     <Button variant="outline" type="submit">join game</Button>
+    {#if error}
+      <p class="text-sm text-red-500">{error}</p>
+    {/if}
   </form>
 
   <div class="flex items-center w-full my-4">

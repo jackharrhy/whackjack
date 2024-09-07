@@ -10,7 +10,7 @@ defmodule WhackWeb.LobbyLive do
     <.svelte
       name="Lobby"
       socket={@socket}
-      props={%{name: @name, code: @code, image_path: @image_path}}
+      props={%{name: @name, code: @code, image_path: @image_path, error: @error}}
     />
     """
   end
@@ -33,6 +33,8 @@ defmodule WhackWeb.LobbyLive do
 
   def handle_event("join-game", fields, socket) do
     %{"code" => code, "name" => name} = fields
+
+    code = code |> String.upcase()
 
     return_to = ~p"/game/#{code}/player"
     setup_to = ~p"/setup?return_to=#{return_to}&name=#{name}"

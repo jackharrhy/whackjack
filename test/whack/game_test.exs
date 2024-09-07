@@ -32,7 +32,7 @@ defmodule Whack.GameTest do
     end
 
     test "returns error when non-host tries to start the game" do
-      game = Game.new("TEST456")
+      game = Game.new("ABCD")
       {:ok, game, _} = Game.add_player(game, "player1", "Alice", nil)
       {:ok, game, _} = Game.add_player(game, "player2", "Bob", nil)
 
@@ -40,11 +40,38 @@ defmodule Whack.GameTest do
     end
 
     test "returns error when not enough players" do
-      game = Game.new("TEST101")
+      game = Game.new("ABCD")
       {:ok, game, _} = Game.add_player(game, "player1", "Alice", nil)
       {:ok, game, _} = Game.add_player(game, "player2", "Bob", nil)
 
       assert {:error, :not_enough_players} = Game.start_game(game, "player1")
+    end
+  end
+
+  def get_final_state({:ok, state_changes}) do
+    state_changes |> Enum.at(-1) |> elem(1)
+  end
+
+  def add_four_players(game) do
+    {:ok, game, player1} = Game.add_player(game, "player1", "Alice", nil)
+    {:ok, game, player2} = Game.add_player(game, "player2", "Bob", nil)
+    {:ok, game, player3} = Game.add_player(game, "player3", "Charlie", nil)
+    {:ok, game, player4} = Game.add_player(game, "player4", "David", nil)
+    {game, player1, player2, player3, player4}
+  end
+
+  describe "hit/2" do
+    test "performs a hit" do
+      {game, player1, _player2, _player3, _player4} =
+        Game.new("ABCD") |> add_four_players()
+
+      game = game |> Game.start_game(player1.id) |> get_final_state()
+
+      assert game.state == :playing
+
+      game = game |> Game.hit(player1.id) |> get_final_state()
+
+      assert game.state == :playing
     end
   end
 end
