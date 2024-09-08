@@ -69,8 +69,8 @@
         on:click={() => hit()}>hit</Button
       >
       <Button
-        class="text-2xl h-16"
-        disabled={!isMyTurn}
+        class={cn("text-2xl h-16", { "bg-red-500": isBusted })}
+        disabled={!isMyTurn || isBusted}
         variant="outline"
         on:click={() => stand()}>stand</Button
       >

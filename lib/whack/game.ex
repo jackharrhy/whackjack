@@ -19,6 +19,9 @@ defmodule Whack.Game do
   @max_players 4
   @max_enemies 4
 
+  @short_delay 300
+  @long_delay 600
+
   @type game_state :: :setup | :playing | :busy
 
   @type t :: %__MODULE__{
@@ -152,8 +155,17 @@ defmodule Whack.Game do
 
       state_changes =
         game_states
-        |> Enum.map(&{250, &1})
         |> Enum.reverse()
+        |> Enum.with_index()
+        |> Enum.map(fn {game, index} ->
+          if index == 0 do
+            {0, game}
+          else
+            {@long_delay, game}
+          end
+        end)
+
+      Logger.debug("Starting game, #{length(state_changes)} state changes to apply")
 
       {:ok, state_changes}
     end
@@ -187,22 +199,11 @@ defmodule Whack.Game do
           perform_enemy_turns(game, player, player_can_make_move: true)
         end
 
-      [first_game | _] = games
+      games = games ++ [game]
 
-      {:ok, player} = get_player_by_id(first_game, player_id)
-      {:ok, enemy} = get_players_enemy(first_game, player_id)
+      state_changes = finalize_move(games, player_id)
 
-      games =
-        if !Character.can_continue_making_moves?(player, enemy) do
-          [
-            first_game |> new_message("#{player.name} vs #{enemy.name} is over")
-            | games
-          ]
-        else
-          games
-        end
-
-      state_changes = games |> Enum.reverse() |> Enum.map(&{250, &1})
+      Logger.debug("Hit complete, #{length(state_changes)} state changes to apply")
 
       {:ok, state_changes}
     end
@@ -218,27 +219,43 @@ defmodule Whack.Game do
 
       game = game |> update_player(player) |> new_message("player #{player_id} stood")
 
-      games = perform_enemy_turns(game, player, player_can_make_move: false)
+      games = perform_enemy_turns(game, player, player_can_make_move: false) ++ [game]
 
-      [first_game | _] = games
+      state_changes = finalize_move(games, player_id)
 
-      {:ok, player} = get_player_by_id(first_game, player_id)
-      {:ok, enemy} = get_players_enemy(first_game, player_id)
-
-      games =
-        if !Character.can_continue_making_moves?(player, enemy) do
-          [
-            first_game |> new_message("#{player.name} vs #{enemy.name} is over")
-            | games
-          ]
-        else
-          games
-        end
-
-      state_changes = games |> Enum.reverse() |> Enum.map(&{250, &1})
+      Logger.debug("Stand complete, #{length(state_changes)} state changes to apply")
 
       {:ok, state_changes}
     end
+  end
+
+  def finalize_move(games, player_id) do
+    [first_game | games] = games
+
+    {:ok, player} = get_player_by_id(first_game, player_id)
+    {:ok, enemy} = get_players_enemy(first_game, player_id)
+
+    games =
+      if !Character.can_continue_making_moves?(player, enemy) do
+        first_game = first_game |> new_message("#{player.name} vs #{enemy.name} is over")
+        [first_game | games]
+      else
+        [first_game | games]
+      end
+
+    state_changes =
+      games
+      |> Enum.reverse()
+      |> Enum.with_index()
+      |> Enum.map(fn {game, index} ->
+        if index == 0 do
+          {0, game}
+        else
+          {@short_delay, game}
+        end
+      end)
+
+    state_changes
   end
 
   @spec get_player_by_id(t(), String.t()) :: Player.t() | nil
@@ -371,7 +388,7 @@ defmodule Whack.Game do
     case updated_enemy.turn_state do
       :hit ->
         [top_card | _] = updated_enemy.hand
-        game |> new_message("#{updated_enemy.name} draws #{top_card}")
+        game |> new_message("#{updated_enemy.name} drew #{top_card}")
 
       :stand ->
         if enemy.turn_state != :stand do

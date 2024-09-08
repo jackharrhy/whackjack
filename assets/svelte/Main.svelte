@@ -1,9 +1,14 @@
 <script>
-  import PlayerIcon from "./PlayerIcon.svelte";
-  import * as Dialog from "$lib/components/ui/dialog";
+  import { flip } from "svelte/animate";
+  import { crossfade } from "svelte/transition";
+  import { quintOut } from "svelte/easing";
+
   import { cn } from "$lib/utils";
-  import Card from "./Card.svelte";
+  import * as Dialog from "$lib/components/ui/dialog";
   import Button from "./components/ui/button/button.svelte";
+
+  import PlayerIcon from "./PlayerIcon.svelte";
+  import Card from "./Card.svelte";
   import EnemyIcon from "./EnemyIcon.svelte";
 
   export let game;
@@ -11,6 +16,11 @@
 
   export let live;
   export let myself;
+
+  const [send, receive] = crossfade({
+    duration: 1500,
+    easing: quintOut,
+  });
 
   function resetGame() {
     live.pushEventTo(myself, "reset-game", {});
@@ -40,24 +50,36 @@
               />
               {#if game.players[i].draw_pile && game.players[i].draw_pile.length > 0}
                 <div class="relative w-40 h-32">
-                  {#each game.players[i].draw_pile as _card, index}
+                  {#each game.players[i].draw_pile
+                    .slice()
+                    .reverse() as card, index (card.id)}
                     <div
-                      class="absolute fade-in-top"
+                      class="absolute"
                       style="left: {index *
                         6}px; z-index: {index}; animation-delay: {index *
                         0.1}s;"
+                      animate:flip={{ duration: 300 }}
+                      in:receive={{ key: card.id }}
+                      out:send={{ key: card.id }}
                     >
                       <Card />
                     </div>
                   {/each}
                 </div>
               {/if}
-              {#if game.players[i].hand && game.players[i].hand.length > 0}
-                <div class="flex gap-2">
-                  {#each game.players[i].hand as card}
+              <div class="flex gap-2 transition-all duration-300 ease-in-out">
+                {#each game.players[i].hand.slice().reverse() as card (card.id)}
+                  <div
+                    animate:flip={{ duration: 300 }}
+                    in:receive={{ key: card.id }}
+                    out:send={{ key: card.id }}
+                  >
                     <Card {card} />
-                  {/each}
-                </div>
+                  </div>
+                {/each}
+              </div>
+
+              {#if game.players[i].hand.length > 0}
                 <p
                   class={cn(
                     "text-2xl font-bold text-white/50 drop-shadow-text text-center",
@@ -191,7 +213,7 @@
     }
   }
 
-  .wobble {
+  :global(.wobble) {
     animation: wobble 0.8s both;
   }
 

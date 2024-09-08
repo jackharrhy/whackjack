@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { cn } from "$lib/utils";
+
   export let card = null;
   export let evil = false;
 
@@ -9,7 +11,7 @@
   $: cardBack = evil ? cardBackEvil : cardBackNice;
 </script>
 
-<div class="w-24 h-32 relative">
+<div class={cn("w-24 h-32 relative", $$restProps.class)}>
   <img
     src={card ? card.art_url : cardBack}
     alt={card ? `${card.value} of ${card.suit}` : "Card back"}

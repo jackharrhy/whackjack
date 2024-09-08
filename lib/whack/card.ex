@@ -20,13 +20,14 @@ defmodule Whack.Card do
 
   @derive Jason.Encoder
   @type t :: %__MODULE__{
+          id: String.t(),
           suit: atom(),
           value: integer(),
           type: :face | :number,
           art: String.t(),
           art_url: String.t()
         }
-  defstruct [:suit, :value, :type, :art, :art_url]
+  defstruct [:id, :suit, :value, :type, :art, :art_url]
 
   @spec new(atom(), integer(), atom()) :: t()
   def new(suit, value, type) do
@@ -35,6 +36,7 @@ defmodule Whack.Card do
     art_url = "/images/Cards/card#{suit_formatted_for_url}#{value_formatted_for_url}.png"
 
     struct!(__MODULE__, %{
+      id: System.unique_integer([:positive, :monotonic]),
       suit: suit,
       value: value,
       type: type,
