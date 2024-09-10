@@ -6,11 +6,13 @@ defmodule Whack.Game do
   alias Whack.Enemy
   alias Whack.Deck
   alias Whack.Hand
+  alias Whack.Card
 
   @derive Jason.Encoder
   defstruct messages: [],
             code: nil,
             state: :setup,
+            draw_piles: [],
             players: [],
             enemies: [],
             turn: nil,
@@ -20,7 +22,7 @@ defmodule Whack.Game do
   @max_enemies 4
 
   @short_delay 300
-  @long_delay 600
+  @long_delay 800
 
   @type game_state :: :setup | :playing | :busy
 
@@ -28,6 +30,7 @@ defmodule Whack.Game do
           messages: [String.t()],
           code: String.t() | nil,
           state: game_state,
+          draw_piles: [[Card.t()]],
           players: [Player.t()],
           enemies: [Enemy.t()],
           host: String.t() | nil,
@@ -40,9 +43,12 @@ defmodule Whack.Game do
       raise ArgumentError, "Code must be a 4-character string of capital letters"
     end
 
+    draw_piles = Deck.fresh_deck() |> Deck.shuffle() |> List.duplicate(2)
+
     struct!(
       __MODULE__,
       messages: ["game #{code} created"],
+      draw_piles: draw_piles,
       code: code
     )
   end
@@ -87,8 +93,8 @@ defmodule Whack.Game do
     end
   end
 
-  @spec add_enemy(t(), Enemy.t()) :: {:ok, t(), Enemy.t()} | {:error, atom()}
-  def add_enemy(game, enemy) do
+  @spec add_enemy(t(), Enemy.t(), [Card.t()]) :: {:ok, t(), Enemy.t()} | {:error, atom()}
+  def add_enemy(game, enemy, draw_pile) do
     if length(game.enemies) >= @max_enemies do
       {:error, :max_enemies_reached}
     else
@@ -99,7 +105,11 @@ defmodule Whack.Game do
         |> Map.put(:enemies, game.enemies ++ [enemy])
         |> new_message("enemy #{enemy} appeared")
 
-      {:ok, game, enemy}
+      enemy = enemy |> Map.put(:draw_pile, draw_pile)
+
+      next_game = game |> update_enemy(enemy)
+
+      {:ok, {game, next_game}, enemy}
     end
   end
 
@@ -108,29 +118,42 @@ defmodule Whack.Game do
     with :ok <- is_player_host(game, player_id),
          :ok <- is_game_in_state(game, :setup),
          :ok <- max_players_reached(game) do
-      suits =
-        Deck.fresh_deck()
-        |> Deck.shuffle()
-        |> Deck.split_by_suits()
-        |> Tuple.to_list()
-        |> Enum.shuffle()
+      [player_deck, enemy_deck] = game.draw_piles
+      player_suits = player_deck |> Deck.split_by_suits() |> Tuple.to_list()
+      enemy_suits = enemy_deck |> Deck.split_by_suits() |> Tuple.to_list()
 
       game = Map.put(game, :state, :busy)
 
       game_states =
-        Enum.reduce(Enum.zip([game.players, suits]), [game], fn {player, suit}, [game | games] ->
+        Enum.reduce(Enum.zip([game.players, player_suits]), [game], fn {player, suit},
+                                                                       [game | games] ->
           player = Map.put(player, :draw_pile, suit)
-          next_game = game |> update_player(player)
+
+          [player_deck, enemy_deck] = game.draw_piles
+
+          player_deck =
+            Enum.reject(player_deck, fn card ->
+              Enum.any?(suit, fn suit_card -> suit_card.id == card.id end)
+            end)
+
+          draw_piles = [player_deck, enemy_deck]
+
+          next_game =
+            game
+            |> update_player(player)
+            |> Map.put(:draw_piles, draw_piles)
+
           [next_game | [game | games]]
         end)
 
       enemy_names = ["evil", "monster", "creepy", "spooky"]
 
-      suits = suits |> Enum.shuffle()
-
       game_states =
-        Enum.reduce(Enum.zip([1..4, suits]), [hd(game_states) | game_states], fn {i, suit},
-                                                                                 [game | games] ->
+        Enum.reduce(Enum.zip([1..4, enemy_suits]), [hd(game_states) | game_states], fn {i, suit},
+                                                                                       [
+                                                                                         game
+                                                                                         | games
+                                                                                       ] ->
           enemy_id = "enemy_#{i}"
           enemy_name = Enum.at(enemy_names, i - 1)
 
@@ -138,10 +161,23 @@ defmodule Whack.Game do
 
           enemy =
             Enemy.new(enemy_id, enemy_name, 10, 14)
-            |> Map.put(:draw_pile, suit)
 
-          {:ok, updated_game, _enemy} = add_enemy(game, enemy)
-          [updated_game | [game | games]]
+          {:ok, {game_with_enemy, game_with_enemy_and_draw_pile}, _enemy} =
+            add_enemy(game, enemy, suit)
+
+          [player_deck, enemy_deck] = game_with_enemy_and_draw_pile.draw_piles
+
+          enemy_deck =
+            Enum.reject(enemy_deck, fn card ->
+              Enum.any?(suit, fn suit_card -> suit_card.id == card.id end)
+            end)
+
+          draw_piles = [player_deck, enemy_deck]
+
+          game_with_enemy_and_draw_pile =
+            game_with_enemy_and_draw_pile |> Map.put(:draw_piles, draw_piles)
+
+          [game_with_enemy_and_draw_pile | [game_with_enemy | [game | games]]]
         end)
 
       [game | _] = game_states

@@ -45,12 +45,12 @@ defmodule WhackWeb.SinglePaneGameLive do
   def render(assigns) do
     ~H"""
     <div class="grid grid-cols-2 grid-rows-[1.5fr_1fr_1fr] gap-0 h-full">
-      <div class="col-span-2 border border-stone-300">
+      <div class="relative col-span-2 border border-stone-300">
         <.live_component module={WhackWeb.MainComponent} id="main" game={@game} debug={@debug} />
       </div>
       
       <%= for {player, index} <- Enum.with_index(@game.players) do %>
-        <div class={"#{player_area_class(index)} flex flex-col border border-stone-300"}>
+        <div class={"#{player_area_class(index)} relative flex flex-col border border-stone-300"}>
           <div class="border-b border-stone-300 py-.5 px-1 text-xs">
             <p>
               <%= player.name %>

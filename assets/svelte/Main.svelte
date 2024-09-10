@@ -17,8 +17,10 @@
   export let live;
   export let myself;
 
+  const defaultDuration = 600;
+
   const [send, receive] = crossfade({
-    duration: 1500,
+    duration: defaultDuration,
     easing: quintOut,
   });
 
@@ -36,6 +38,29 @@
   }
 </script>
 
+{#if game.draw_piles && game.draw_piles.length > 0}
+  <div
+    class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-12"
+  >
+    {#each game.draw_piles as draw_pile, pileIndex}
+      <div class="relative w-40 h-32">
+        {#each draw_pile.slice().reverse() as card, index (card.id)}
+          <div
+            class="absolute"
+            style="left: {index * 0.5}px; top: {index *
+              0.5}px; z-index: {index}; animation-delay: {index * 0.1}s;"
+            animate:flip={{ duration: defaultDuration }}
+            in:receive={{ key: card.id }}
+            out:send={{ key: card.id }}
+          >
+            <Card evil={pileIndex !== 0} />
+          </div>
+        {/each}
+      </div>
+    {/each}
+  </div>
+{/if}
+
 <div class="bg-felt bg-contain flex h-full p-2">
   <div class="flex-1 flex gap-8 py-6 px-12">
     <div class="grid grid-rows-4 gap-4 w-full">
@@ -48,29 +73,26 @@
                 isPlayersTurn={isPlayersTurn(game.players[i])}
                 class="fade-in-left"
               />
-              {#if game.players[i].draw_pile && game.players[i].draw_pile.length > 0}
-                <div class="relative w-40 h-32">
-                  {#each game.players[i].draw_pile
-                    .slice()
-                    .reverse() as card, index (card.id)}
-                    <div
-                      class="absolute"
-                      style="left: {index *
-                        6}px; z-index: {index}; animation-delay: {index *
-                        0.1}s;"
-                      animate:flip={{ duration: 300 }}
-                      in:receive={{ key: card.id }}
-                      out:send={{ key: card.id }}
-                    >
-                      <Card />
-                    </div>
-                  {/each}
-                </div>
-              {/if}
+              <div class="relative w-40 h-32">
+                {#each game.players[i].draw_pile
+                  .slice()
+                  .reverse() as card, index (card.id)}
+                  <div
+                    class="absolute"
+                    style="left: {index *
+                      6}px; z-index: {index}; animation-delay: {index * 0.1}s;"
+                    animate:flip={{ duration: defaultDuration }}
+                    in:receive={{ key: card.id }}
+                    out:send={{ key: card.id }}
+                  >
+                    <Card />
+                  </div>
+                {/each}
+              </div>
               <div class="flex gap-2 transition-all duration-300 ease-in-out">
                 {#each game.players[i].hand.slice().reverse() as card (card.id)}
                   <div
-                    animate:flip={{ duration: 300 }}
+                    animate:flip={{ duration: defaultDuration }}
                     in:receive={{ key: card.id }}
                     out:send={{ key: card.id }}
                   >
@@ -111,26 +133,32 @@
                 >
                   {game.enemies[i].hand_value} / 21
                 </p>
-                <div class="flex gap-2">
-                  {#each game.enemies[i].hand as card}
+              {/if}
+              <div class="flex gap-2 transition-all duration-300 ease-in-out">
+                {#each game.enemies[i].hand as card (card.id)}
+                  <div
+                    animate:flip={{ duration: defaultDuration }}
+                    in:receive={{ key: card.id }}
+                    out:send={{ key: card.id }}
+                  >
                     <Card {card} />
-                  {/each}
-                </div>
-              {/if}
-              {#if game.enemies[i].draw_pile && game.enemies[i].draw_pile.length > 0}
-                <div class="relative w-40 h-32">
-                  {#each game.enemies[i].draw_pile as _card, index}
-                    <div
-                      class="absolute fade-in-top"
-                      style="right: {index *
-                        6}px; z-index: {index}; animation-delay: {index *
-                        0.1}s;"
-                    >
-                      <Card evil />
-                    </div>
-                  {/each}
-                </div>
-              {/if}
+                  </div>
+                {/each}
+              </div>
+              <div class="relative w-40 h-32">
+                {#each game.enemies[i].draw_pile as card, index (card.id)}
+                  <div
+                    class="absolute"
+                    style="right: {index *
+                      6}px; z-index: {index}; animation-delay: {index * 0.1}s;"
+                    animate:flip={{ duration: defaultDuration }}
+                    in:receive={{ key: card.id }}
+                    out:send={{ key: card.id }}
+                  >
+                    <Card evil />
+                  </div>
+                {/each}
+              </div>
               <EnemyIcon enemy={game.enemies[i]} class="fade-in-right" />
             {/if}
           </div>
