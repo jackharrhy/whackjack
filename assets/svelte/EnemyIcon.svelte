@@ -10,7 +10,13 @@
       {enemy.name}
     </p>
     <p class="text-white drop-shadow-text text-center text-sm">
-      {enemy.health} ❤️
+      {enemy.health}
+      {#if enemy.incoming_damage}
+        <span class="text-red-500 font-bold">
+          - {enemy.incoming_damage}
+        </span>
+      {/if}
+      ❤️
     </p>
     <p class="text-white drop-shadow-text text-center text-sm">
       stands on {enemy.stands_on}

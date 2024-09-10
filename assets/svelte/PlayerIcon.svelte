@@ -24,6 +24,12 @@
     {player.name}
   </p>
   <p class="text-white drop-shadow-text text-center text-sm">
-    {player.health} ❤️
+    {player.health}
+    {#if player.incoming_damage}
+      <span class="text-red-500 font-bold">
+        - {player.incoming_damage}
+      </span>
+    {/if}
+    ❤️
   </p>
 </div>

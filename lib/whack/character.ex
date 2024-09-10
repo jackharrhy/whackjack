@@ -9,6 +9,7 @@ defmodule Whack.Character do
     :hand_value,
     :discard_pile,
     :health,
+    :incoming_damage,
     :turn_state
   ]
 
@@ -25,6 +26,7 @@ defmodule Whack.Character do
           hand_value: integer(),
           discard_pile: [Card.t()],
           health: integer(),
+          incoming_damage: integer() | nil,
           turn_state: turn_state()
         }
 
@@ -38,6 +40,7 @@ defmodule Whack.Character do
       hand_value: 0,
       discard_pile: [],
       health: Keyword.get(opts, :health, 100),
+      incoming_damage: nil,
       turn_state: :hit
     })
   end
@@ -89,5 +92,10 @@ defmodule Whack.Character do
   @spec can_hit?(t()) :: boolean()
   defp can_hit?(character) do
     character.turn_state == :hit
+  end
+
+  @spec apply_damage(t(), integer()) :: t()
+  def apply_damage(character, damage) do
+    character |> Map.put(:incoming_damage, damage)
   end
 end

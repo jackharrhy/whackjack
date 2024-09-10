@@ -266,17 +266,61 @@ defmodule Whack.Game do
   end
 
   def finalize_move(games, player_id) do
-    [first_game | games] = games
+    [game | games] = games
 
-    {:ok, player} = get_player_by_id(first_game, player_id)
-    {:ok, enemy} = get_players_enemy(first_game, player_id)
+    {:ok, player} = get_player_by_id(game, player_id)
+    {:ok, enemy} = get_players_enemy(game, player_id)
 
     games =
       if !Character.can_continue_making_moves?(player, enemy) do
-        first_game = first_game |> new_message("#{player.name} vs #{enemy.name} is over")
-        [first_game | games]
+        player_hand_value =
+          if Hand.hand_not_busted?(player.hand),
+            do: Hand.calculate_value_of_hand(player.hand),
+            else: 0
+
+        enemy_hand_value =
+          if Hand.hand_not_busted?(enemy.hand),
+            do: Hand.calculate_value_of_hand(enemy.hand),
+            else: 0
+
+        cond do
+          player_hand_value > enemy_hand_value ->
+            damage = player_hand_value - enemy_hand_value
+            player = Character.apply_damage(player, damage)
+
+            game =
+              game
+              |> update_player(player)
+              |> new_message("#{player.name} did #{damage} damage to #{enemy.name}")
+
+            games = [game | games]
+
+            games = [apply_any_pending_damage(game) | games]
+
+            games
+
+          enemy_hand_value > player_hand_value ->
+            damage = enemy_hand_value - player_hand_value
+            enemy = Character.apply_damage(enemy, damage)
+
+            game =
+              game
+              |> update_enemy(enemy)
+              |> new_message("#{enemy.name} did #{damage} damage to #{player.name}")
+
+            games = [game | games]
+
+            games = [apply_any_pending_damage(game) | games]
+
+            games
+
+          true ->
+            game = game |> new_message("draw, no damage done")
+
+            [game | games]
+        end
       else
-        [first_game | games]
+        [game | games]
       end
 
     state_changes =
@@ -287,11 +331,35 @@ defmodule Whack.Game do
         if index == 0 do
           {0, game}
         else
-          {@short_delay, game}
+          {@long_delay, game}
         end
       end)
 
     state_changes
+  end
+
+  def apply_any_pending_damage(game) do
+    players =
+      Enum.map(game.players, fn player ->
+        if player.incoming_damage do
+          new_health = max(player.health - player.incoming_damage, 0)
+          %{player | health: new_health, incoming_damage: nil}
+        else
+          player
+        end
+      end)
+
+    enemies =
+      Enum.map(game.enemies, fn enemy ->
+        if enemy.incoming_damage do
+          new_health = max(enemy.health - enemy.incoming_damage, 0)
+          %{enemy | health: new_health, incoming_damage: nil}
+        else
+          enemy
+        end
+      end)
+
+    %{game | players: players, enemies: enemies}
   end
 
   @spec get_player_by_id(t(), String.t()) :: Player.t() | nil
