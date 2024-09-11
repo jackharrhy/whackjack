@@ -16,12 +16,12 @@ defmodule Whack.Game do
             players: [],
             enemies: [],
             turn: nil,
-            host: nil
+            host: nil,
+            zero_delay: false
 
   @max_players 4
   @max_enemies 4
 
-  @short_delay 300
   @long_delay 800
 
   @type game_state :: :setup | :playing | :busy
@@ -34,7 +34,8 @@ defmodule Whack.Game do
           players: [Player.t()],
           enemies: [Enemy.t()],
           host: String.t() | nil,
-          turn: String.t() | nil
+          turn: String.t() | nil,
+          zero_delay: boolean()
         }
 
   @spec new(String.t()) :: t()
@@ -56,6 +57,11 @@ defmodule Whack.Game do
   @spec reset_game(t()) :: {:ok, t()}
   def reset_game(game) do
     {:ok, new(game.code)}
+  end
+
+  @spec toggle_zero_delay(t()) :: {:ok, t()}
+  def toggle_zero_delay(game) do
+    {:ok, game |> Map.put(:zero_delay, !game.zero_delay)}
   end
 
   @spec new_message(t(), String.t()) :: t()
@@ -230,14 +236,26 @@ defmodule Whack.Game do
             game
             |> new_message("#{player.name} busted!")
 
-          perform_enemy_turns(game, player, player_can_make_move: false)
+          [game | games] = perform_enemy_turns(game, player, player_can_make_move: false)
+
+          [progress_to_next_state_after_turn_over(game, player) | [game | games]]
         else
           perform_enemy_turns(game, player, player_can_make_move: true)
         end
 
       games = games ++ [game]
 
-      state_changes = finalize_move(games, player_id)
+      state_changes =
+        games
+        |> Enum.reverse()
+        |> Enum.with_index()
+        |> Enum.map(fn {game, index} ->
+          if index == 0 do
+            {0, game}
+          else
+            {@long_delay, game}
+          end
+        end)
 
       Logger.debug("Hit complete, #{length(state_changes)} state changes to apply")
 
@@ -255,9 +273,21 @@ defmodule Whack.Game do
 
       game = game |> update_player(player) |> new_message("player #{player_id} stood")
 
-      games = perform_enemy_turns(game, player, player_can_make_move: false) ++ [game]
+      [game | games] = perform_enemy_turns(game, player, player_can_make_move: false) ++ [game]
 
-      state_changes = finalize_move(games, player_id)
+      games = [progress_to_next_state_after_turn_over(game, player) | [game | games]]
+
+      state_changes =
+        games
+        |> Enum.reverse()
+        |> Enum.with_index()
+        |> Enum.map(fn {game, index} ->
+          if index == 0 do
+            {0, game}
+          else
+            {@long_delay, game}
+          end
+        end)
 
       Logger.debug("Stand complete, #{length(state_changes)} state changes to apply")
 
@@ -265,77 +295,52 @@ defmodule Whack.Game do
     end
   end
 
-  def finalize_move(games, player_id) do
-    [game | games] = games
+  @spec progress_to_next_state_after_turn_over(t(), Player.t()) :: t()
+  def progress_to_next_state_after_turn_over(game, player) do
+    current_player_index = Enum.find_index(game.players, &(&1.id == player.id))
+    next_player_index = current_player_index + 1
 
-    {:ok, player} = get_player_by_id(game, player_id)
-    {:ok, enemy} = get_players_enemy(game, player_id)
-
-    games =
-      if !Character.can_continue_making_moves?(player, enemy) do
-        player_hand_value =
-          if Hand.hand_not_busted?(player.hand),
-            do: Hand.calculate_value_of_hand(player.hand),
-            else: 0
-
-        enemy_hand_value =
-          if Hand.hand_not_busted?(enemy.hand),
-            do: Hand.calculate_value_of_hand(enemy.hand),
-            else: 0
-
-        cond do
-          player_hand_value > enemy_hand_value ->
-            damage = player_hand_value - enemy_hand_value
-            player = Character.apply_damage(player, damage)
-
-            game =
-              game
-              |> update_player(player)
-              |> new_message("#{player.name} did #{damage} damage to #{enemy.name}")
-
-            games = [game | games]
-
-            games = [apply_any_pending_damage(game) | games]
-
-            games
-
-          enemy_hand_value > player_hand_value ->
-            damage = enemy_hand_value - player_hand_value
-            enemy = Character.apply_damage(enemy, damage)
-
-            game =
-              game
-              |> update_enemy(enemy)
-              |> new_message("#{enemy.name} did #{damage} damage to #{player.name}")
-
-            games = [game | games]
-
-            games = [apply_any_pending_damage(game) | games]
-
-            games
-
-          true ->
-            game = game |> new_message("draw, no damage done")
-
-            [game | games]
-        end
+    game =
+      if next_player_index == length(game.players) do
+        game
       else
-        [game | games]
+        next_player = Enum.at(game.players, next_player_index)
+        game |> Map.put(:turn, next_player.id) |> recalculate_incoming_damage_for_everyone()
       end
 
-    state_changes =
-      games
-      |> Enum.reverse()
-      |> Enum.with_index()
-      |> Enum.map(fn {game, index} ->
-        if index == 0 do
-          {0, game}
+    game
+  end
+
+  def calculate_damage(player_hand_value, enemy_hand_value) do
+    player_hand_value = if player_hand_value > 21, do: 0, else: player_hand_value
+    enemy_hand_value = if enemy_hand_value > 21, do: 0, else: enemy_hand_value
+
+    player_damage = max(enemy_hand_value - player_hand_value, 0)
+    enemy_damage = max(player_hand_value - enemy_hand_value, 0)
+    {player_damage, enemy_damage}
+  end
+
+  def recalculate_incoming_damage_for_everyone(game) do
+    players_with_damage =
+      Enum.with_index(game.players)
+      |> Enum.map(fn {player, index} ->
+        enemy = Enum.at(game.enemies, index)
+
+        if player.turn_state != :hit && enemy.turn_state != :hit do
+          {player_damage, enemy_damage} = calculate_damage(player.hand_value, enemy.hand_value)
+
+          updated_player = %{player | incoming_damage: player_damage}
+          updated_enemy = %{enemy | incoming_damage: enemy_damage}
+
+          {updated_player, updated_enemy}
         else
-          {@long_delay, game}
+          {player, enemy}
         end
       end)
 
-    state_changes
+    {updated_players, updated_enemies} = Enum.unzip(players_with_damage)
+
+    %{game | players: updated_players, enemies: updated_enemies}
   end
 
   def apply_any_pending_damage(game) do

@@ -25,4 +25,13 @@ defmodule WhackWeb.MainComponent do
         {:noreply, assign(socket, game: game)}
     end
   end
+
+  def handle_event("toggle-zero-delay", _, socket) do
+    %{game: game} = socket.assigns
+
+    case GameServer.toggle_zero_delay(game.code) do
+      {:ok, game} ->
+        {:noreply, assign(socket, game: game)}
+    end
+  end
 end

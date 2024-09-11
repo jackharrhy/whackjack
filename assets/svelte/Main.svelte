@@ -29,6 +29,10 @@
     window.location.reload();
   }
 
+  function toggleZeroDelay() {
+    live.pushEventTo(myself, "toggle-zero-delay", {});
+  }
+
   function isPlayerHost(player) {
     return game.host === player.id;
   }
@@ -174,6 +178,9 @@
       {#if debug}
         <Button variant="outline" class="w-full" on:click={resetGame}
           ><span class="text-xs text-black">reset game</span></Button
+        >
+        <Button variant="outline" class="w-full" on:click={toggleZeroDelay}
+          ><span class="text-xs text-black">toggle zero delay</span></Button
         >
         <Dialog.Root>
           <Dialog.Trigger>

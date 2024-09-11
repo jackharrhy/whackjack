@@ -32,6 +32,7 @@ defmodule Whack.GameServer do
 
   def start_game(code, player_id), do: call_by_code(code, {:start_game, player_id})
   def reset_game(code), do: call_by_code(code, :reset_game)
+  def toggle_zero_delay(code), do: call_by_code(code, :toggle_zero_delay)
 
   def hit(code, player_id), do: call_by_code(code, {:hit, player_id})
   def stand(code, player_id), do: call_by_code(code, {:stand, player_id})
@@ -83,6 +84,13 @@ defmodule Whack.GameServer do
   end
 
   @impl GenServer
+  def handle_call(:toggle_zero_delay, _from, state) do
+    {:ok, game} = Game.toggle_zero_delay(state.game)
+    broadcast_game_updated!(game.code, game)
+    {:reply, {:ok, game}, %{state | game: game}}
+  end
+
+  @impl GenServer
   def handle_call({:hit, player_id}, _from, state) do
     case Game.hit(state.game, player_id) do
       {:ok, state_changes} ->
@@ -122,11 +130,18 @@ defmodule Whack.GameServer do
   end
 
   defp handle_state_changes(state_changes) do
-    Enum.reduce(state_changes, 0, fn {delay, game}, acc_delay ->
-      total_delay = acc_delay + delay
-      :timer.send_after(total_delay, self(), {:update_game_state, game})
-      total_delay
-    end)
+    [{_, first_game} | _] = state_changes
+
+    if first_game.zero_delay do
+      {_, last_game} = List.last(state_changes)
+      :timer.send_after(0, self(), {:update_game_state, last_game})
+    else
+      Enum.reduce(state_changes, 0, fn {delay, game}, acc_delay ->
+        total_delay = acc_delay + delay
+        :timer.send_after(total_delay, self(), {:update_game_state, game})
+        total_delay
+      end)
+    end
   end
 
   defp broadcast_game_updated!(code, game) do
