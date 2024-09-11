@@ -45,7 +45,7 @@ defmodule WhackWeb.SinglePaneGameLive do
   def render(assigns) do
     ~H"""
     <div class="grid grid-cols-2 grid-rows-[1.5fr_1fr_1fr] gap-0 h-full">
-      <div class="relative col-span-2 border border-stone-300">
+      <div class="relative col-span-2 border border-stone-300 max-h-[60vh]">
         <.live_component module={WhackWeb.MainComponent} id="main" game={@game} debug={@debug} />
       </div>
       

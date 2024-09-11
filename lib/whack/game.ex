@@ -236,9 +236,9 @@ defmodule Whack.Game do
             game
             |> new_message("#{player.name} busted!")
 
-          [game | games] = perform_enemy_turns(game, player, player_can_make_move: false)
+          [game | _] = games = perform_enemy_turns(game, player, player_can_make_move: false)
 
-          [progress_to_next_state_after_turn_over(game, player) | [game | games]]
+          progress_to_next_state_after_turn_over(game, player) ++ games
         else
           perform_enemy_turns(game, player, player_can_make_move: true)
         end
@@ -273,9 +273,10 @@ defmodule Whack.Game do
 
       game = game |> update_player(player) |> new_message("player #{player_id} stood")
 
-      [game | games] = perform_enemy_turns(game, player, player_can_make_move: false) ++ [game]
+      [game | _] =
+        games = perform_enemy_turns(game, player, player_can_make_move: false) ++ [game]
 
-      games = [progress_to_next_state_after_turn_over(game, player) | [game | games]]
+      games = progress_to_next_state_after_turn_over(game, player) ++ games
 
       state_changes =
         games
@@ -295,22 +296,26 @@ defmodule Whack.Game do
     end
   end
 
-  @spec progress_to_next_state_after_turn_over(t(), Player.t()) :: t()
+  @spec progress_to_next_state_after_turn_over(t(), Player.t()) :: [t()]
   def progress_to_next_state_after_turn_over(game, player) do
     current_player_index = Enum.find_index(game.players, &(&1.id == player.id))
     next_player_index = current_player_index + 1
 
-    game =
-      if next_player_index == length(game.players) do
-        game
-      else
-        next_player = Enum.at(game.players, next_player_index)
-        game |> Map.put(:turn, next_player.id) |> recalculate_incoming_damage_for_everyone()
-      end
+    if next_player_index == length(game.players) do
+      game = game |> Map.put(:turn, nil) |> recalculate_incoming_damage_for_everyone()
 
-    game
+      damage_applied_game = apply_any_pending_damage(game)
+
+      [damage_applied_game | game]
+    else
+      next_player = Enum.at(game.players, next_player_index)
+      game = game |> Map.put(:turn, next_player.id) |> recalculate_incoming_damage_for_everyone()
+
+      [game]
+    end
   end
 
+  @spec calculate_damage(integer(), integer()) :: {integer(), integer()}
   def calculate_damage(player_hand_value, enemy_hand_value) do
     player_hand_value = if player_hand_value > 21, do: 0, else: player_hand_value
     enemy_hand_value = if enemy_hand_value > 21, do: 0, else: enemy_hand_value
@@ -320,6 +325,7 @@ defmodule Whack.Game do
     {player_damage, enemy_damage}
   end
 
+  @spec recalculate_incoming_damage_for_everyone(t()) :: t()
   def recalculate_incoming_damage_for_everyone(game) do
     players_with_damage =
       Enum.with_index(game.players)
@@ -343,6 +349,7 @@ defmodule Whack.Game do
     %{game | players: updated_players, enemies: updated_enemies}
   end
 
+  @spec apply_any_pending_damage(t()) :: t()
   def apply_any_pending_damage(game) do
     players =
       Enum.map(game.players, fn player ->
@@ -466,11 +473,13 @@ defmodule Whack.Game do
     end)
   end
 
+  @spec perform_enemy_turns(t(), Player.t(), boolean()) :: [t()]
   defp perform_enemy_turns(game, player, opts) do
     player_can_make_move = Keyword.fetch!(opts, :player_can_make_move)
     perform_enemy_turns(game, player, player_can_make_move, [])
   end
 
+  @spec perform_enemy_turns(t(), Player.t(), boolean(), [t()]) :: [t()]
   defp perform_enemy_turns(game, player, player_can_make_move, acc) do
     {:ok, enemy} = get_players_enemy(game, player.id)
 
@@ -489,6 +498,7 @@ defmodule Whack.Game do
     end
   end
 
+  @spec perform_enemy_turn(t(), Player.t()) :: t()
   defp perform_enemy_turn(game, player) do
     {:ok, enemy} = get_players_enemy(game, player.id)
     {:ok, updated_enemy} = Enemy.perform_turn(enemy)
