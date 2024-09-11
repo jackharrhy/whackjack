@@ -129,6 +129,16 @@ defmodule Whack.GameTest do
         |> player_actions.(player4)
 
       assert game.turn == nil
+
+      Enum.each(game.players, fn player ->
+        assert player.incoming_damage == nil, "Player #{player.id} has pending damage"
+        assert player.health == 100, "Player #{player.id} does not have full health"
+      end)
+
+      Enum.each(game.enemies, fn enemy ->
+        assert enemy.incoming_damage == nil, "Enemy #{enemy.id} has pending damage"
+        assert enemy.health == 10, "Enemy #{enemy.id} does not have full health"
+      end)
     end
   end
 end

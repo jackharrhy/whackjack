@@ -306,7 +306,7 @@ defmodule Whack.Game do
 
       damage_applied_game = apply_any_pending_damage(game)
 
-      [damage_applied_game | game]
+      [damage_applied_game, game]
     else
       next_player = Enum.at(game.players, next_player_index)
       game = game |> Map.put(:turn, next_player.id) |> recalculate_incoming_damage_for_everyone()
