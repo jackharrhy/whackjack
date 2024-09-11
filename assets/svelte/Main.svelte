@@ -10,6 +10,7 @@
   import PlayerIcon from "./PlayerIcon.svelte";
   import Card from "./Card.svelte";
   import EnemyIcon from "./EnemyIcon.svelte";
+  import HandDisplay from "./HandDisplay.svelte";
 
   export let game;
   export let debug;
@@ -105,18 +106,7 @@
                 {/each}
               </div>
 
-              {#if game.players[i].hand.length > 0}
-                <p
-                  class={cn(
-                    "text-2xl font-bold text-white/50 drop-shadow-text text-center",
-                    {
-                      "text-red-500 wobble": game.players[i].hand_value > 21,
-                    }
-                  )}
-                >
-                  {game.players[i].hand_value} / 21
-                </p>
-              {/if}
+              <HandDisplay character={game.players[i]} />
             {:else}
               <p class="text-white/50 drop-shadow-text text-center">
                 waiting...
@@ -126,18 +116,7 @@
 
           <div class="flex items-center gap-8">
             {#if i < game.enemies.length}
-              {#if game.enemies[i].hand && game.enemies[i].hand.length > 0}
-                <p
-                  class={cn(
-                    "text-2xl font-bold text-white/50 drop-shadow-text text-center",
-                    {
-                      "text-red-500 wobble": game.enemies[i].hand_value > 21,
-                    }
-                  )}
-                >
-                  {game.enemies[i].hand_value} / 21
-                </p>
-              {/if}
+              <HandDisplay character={game.enemies[i]} />
               <div class="flex gap-2 transition-all duration-300 ease-in-out">
                 {#each game.enemies[i].hand as card (card.id)}
                   <div
@@ -293,6 +272,34 @@
     100% {
       opacity: 1;
       transform: translateX(0);
+    }
+  }
+
+  :global(.jello) {
+    animation: jello 0.9s both;
+  }
+
+  @keyframes jello {
+    0% {
+      transform: scale3d(1, 1, 1);
+    }
+    30% {
+      transform: scale3d(1.25, 0.75, 1);
+    }
+    40% {
+      transform: scale3d(0.75, 1.25, 1);
+    }
+    50% {
+      transform: scale3d(1.15, 0.85, 1);
+    }
+    65% {
+      transform: scale3d(0.95, 1.05, 1);
+    }
+    75% {
+      transform: scale3d(1.05, 0.95, 1);
+    }
+    100% {
+      transform: scale3d(1, 1, 1);
     }
   }
 </style>

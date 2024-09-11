@@ -24,11 +24,13 @@ const config = {
       dropShadow: {
         text: "0 1.2px 1.2px rgba(0, 0, 0, 0.8)",
         evil: "0 1.2px 1.2px rgba(255, 0, 0, 0.8)",
+        glow: "0 1.2px 1.2px rgba(255, 191, 0, 0.8)",
       },
       backgroundImage: {
-        "felt": "url('/images/Board/felt_green.jpg')",
+        felt: "url('/images/Board/felt_green.jpg')",
       },
       colors: {
+        glow: "#ffbf00",
         border: "hsl(var(--border) / <alpha-value>)",
         input: "hsl(var(--input) / <alpha-value>)",
         ring: "hsl(var(--ring) / <alpha-value>)",
