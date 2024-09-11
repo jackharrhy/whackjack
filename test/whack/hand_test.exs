@@ -25,7 +25,7 @@ defmodule Whack.HandTest do
     test "calculates the value of a hand with a queen, 3, and 2" do
       hand = [
         Card.new(:spades, 12, :face),
-        Card.new(:spaces, 3, :number),
+        Card.new(:spades, 3, :number),
         Card.new(:spades, 2, :number)
       ]
 
