@@ -45,6 +45,17 @@ defmodule Whack.Character do
     })
   end
 
+  def clear_hand_and_reset_state(character) do
+    %{
+      character
+      | hand: [],
+        discard_pile: character.hand ++ character.discard_pile,
+        hand_value: 0,
+        incoming_damage: nil,
+        turn_state: :hit
+    }
+  end
+
   def perform_hit(%{turn_state: :hit, draw_pile: []}) do
     {:error, :empty_draw_pile}
   end

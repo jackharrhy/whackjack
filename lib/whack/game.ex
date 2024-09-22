@@ -191,7 +191,7 @@ defmodule Whack.Game do
       game =
         game
         |> Map.put(:state, :playing)
-        |> Map.put(:turn, game.host)
+        |> set_turn(Enum.at(game.players, 0))
 
       game_states = [game | game_states]
 
@@ -302,17 +302,67 @@ defmodule Whack.Game do
     next_player_index = current_player_index + 1
 
     if next_player_index == length(game.players) do
-      game = game |> Map.put(:turn, nil) |> recalculate_incoming_damage_for_everyone()
-
-      damage_applied_game = apply_any_pending_damage(game)
-
-      [damage_applied_game, game]
+      finalize_round(game)
     else
       next_player = Enum.at(game.players, next_player_index)
-      game = game |> Map.put(:turn, next_player.id) |> recalculate_incoming_damage_for_everyone()
+      game = game |> set_turn(next_player) |> recalculate_incoming_damage_for_everyone()
 
       [game]
     end
+  end
+
+  @spec finalize_round(t()) :: [t()]
+  def finalize_round(game) do
+    game = game |> set_turn(nil) |> recalculate_incoming_damage_for_everyone()
+    games = [game]
+
+    game = apply_any_pending_damage(game)
+    games = [game | games]
+
+    game = kill_any_dead_characters(game)
+    games = [game | games]
+
+    cond do
+      length(game.enemies) == 0 ->
+        raise "No enemies left, start new round"
+
+      length(game.players) == 0 ->
+        raise "No players left, end game"
+
+      true ->
+        game = clear_hands_and_reset_states(game)
+
+        games = [game | games]
+
+        first_player = Enum.at(game.players, 0)
+
+        game = game |> set_turn(first_player)
+
+        [game | games]
+    end
+  end
+
+  @spec kill_any_dead_characters(t()) :: t()
+  def kill_any_dead_characters(game) do
+    players = Enum.filter(game.players, fn player -> player.health > 0 end)
+    enemies = Enum.filter(game.enemies, fn enemy -> enemy.health > 0 end)
+
+    game = %{game | players: players, enemies: enemies}
+
+    dead_characters =
+      Enum.filter(game.players, fn player -> player.health <= 0 end) ++
+        Enum.filter(game.enemies, fn enemy -> enemy.health <= 0 end)
+
+    messages =
+      dead_characters |> Enum.map(fn character -> "#{character.name} has been defeated!" end)
+
+    %{game | messages: messages ++ game.messages}
+  end
+
+  def clear_hands_and_reset_states(game) do
+    players = Enum.map(game.players, &Character.clear_hand_and_reset_state/1)
+    enemies = Enum.map(game.enemies, &Character.clear_hand_and_reset_state/1)
+    %{game | players: players, enemies: enemies}
   end
 
   @spec calculate_damage(integer(), integer()) :: {integer(), integer()}
@@ -374,7 +424,7 @@ defmodule Whack.Game do
     %{game | players: players, enemies: enemies}
   end
 
-  @spec get_player_by_id(t(), String.t()) :: Player.t() | nil
+  @spec get_player_by_id(t(), String.t()) :: {:ok, Player.t()} | {:error, atom()}
   def get_player_by_id(game, player_id) do
     player = Enum.find(game.players, fn player -> player.id == player_id end)
 
@@ -455,6 +505,16 @@ defmodule Whack.Game do
     player_id == game.turn
   end
 
+  @spec set_turn(t(), Player.t() | nil) :: t()
+  def set_turn(game, player) do
+    game = %{game | turn: player && player.id}
+
+    case player do
+      nil -> game
+      player -> new_message(game, "it's #{player.name}'s turn")
+    end
+  end
+
   @spec update_player(t(), Player.t()) :: t()
   def update_player(game, player) do
     update_in(game.players, fn players ->
@@ -473,7 +533,7 @@ defmodule Whack.Game do
     end)
   end
 
-  @spec perform_enemy_turns(t(), Player.t(), boolean()) :: [t()]
+  @spec perform_enemy_turns(t(), Player.t(), keyword()) :: [t()]
   defp perform_enemy_turns(game, player, opts) do
     player_can_make_move = Keyword.fetch!(opts, :player_can_make_move)
     perform_enemy_turns(game, player, player_can_make_move, [])
