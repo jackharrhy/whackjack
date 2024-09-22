@@ -76,7 +76,7 @@ defmodule Whack.GameTest do
     end
   end
 
-  describe "full match" do
+  describe "full round" do
     test "all players hitting twice, getting 20s, ends with nothing happening" do
       {game, player1, player2, player3, player4} =
         Game.new("ABCD") |> add_four_players()
@@ -88,13 +88,13 @@ defmodule Whack.GameTest do
       players =
         game.players
         |> Enum.map(fn player ->
-          %{player | draw_pile: List.duplicate(queen_of_hearts, 2)}
+          %{player | draw_pile: List.duplicate(queen_of_hearts, 3)}
         end)
 
       enemies =
         game.enemies
         |> Enum.map(fn enemy ->
-          %{enemy | draw_pile: List.duplicate(queen_of_hearts, 2)}
+          %{enemy | draw_pile: List.duplicate(queen_of_hearts, 3)}
         end)
 
       game = game |> Map.put(:players, players) |> Map.put(:enemies, enemies)
@@ -128,7 +128,7 @@ defmodule Whack.GameTest do
         |> player_actions.(player3)
         |> player_actions.(player4)
 
-      assert game.turn == nil
+      assert game.turn == player1.id
 
       Enum.each(game.players, fn player ->
         assert player.incoming_damage == nil, "Player #{player.id} has pending damage"
@@ -138,6 +138,58 @@ defmodule Whack.GameTest do
       Enum.each(game.enemies, fn enemy ->
         assert enemy.incoming_damage == nil, "Enemy #{enemy.id} has pending damage"
         assert enemy.health == 10, "Enemy #{enemy.id} does not have full health"
+      end)
+    end
+  end
+
+  describe "full match" do
+    test "players win with blackjack" do
+      {game, player1, player2, player3, player4} =
+        Game.new("JEFF") |> add_four_players()
+
+      game = game |> Game.start_game(player1.id) |> get_final_state()
+
+      ace_of_hearts = Card.new(:hearts, 1, :ace)
+      king_of_hearts = Card.new(:hearts, 13, :king)
+      two_of_spades = Card.new(:spades, 2, :two)
+
+      players =
+        game.players
+        |> Enum.map(fn player ->
+          %{player | draw_pile: [ace_of_hearts, king_of_hearts]}
+        end)
+
+      enemies =
+        game.enemies
+        |> Enum.map(fn enemy ->
+          %{enemy | draw_pile: List.duplicate(two_of_spades, 10)}
+        end)
+
+      game = game |> Map.put(:players, players) |> Map.put(:enemies, enemies)
+
+      player_actions = fn game, player ->
+        game
+        |> Game.hit(player.id)
+        |> get_final_state()
+        |> Game.hit(player.id)
+        |> get_final_state()
+      end
+
+      game =
+        game
+        |> player_actions.(player1)
+        |> player_actions.(player2)
+        |> player_actions.(player3)
+        |> player_actions.(player4)
+
+      Enum.each(game.players, fn player ->
+        assert player.health == 100
+      end)
+
+      IO.inspect(game)
+
+      Enum.each(game.enemies, fn enemy ->
+        assert enemy.health == 3
       end)
     end
   end

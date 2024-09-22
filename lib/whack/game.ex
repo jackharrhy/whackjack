@@ -31,8 +31,8 @@ defmodule Whack.Game do
           code: String.t() | nil,
           state: game_state,
           draw_piles: [[Card.t()]],
-          players: [Player.t()],
-          enemies: [Enemy.t()],
+          players: [Player.t() | nil],
+          enemies: [Enemy.t() | nil],
           host: String.t() | nil,
           turn: String.t() | nil,
           zero_delay: boolean()
@@ -242,7 +242,18 @@ defmodule Whack.Game do
 
           progress_to_next_state_after_turn_over(game, player) ++ games
         else
-          perform_enemy_turns(game, player, player_can_make_move: true)
+          [game | _] =
+            games =
+            perform_enemy_turns(game, player, player_can_make_move: player.turn_state == :hit)
+
+          {:ok, player} = get_player_by_id(game, player.id)
+          {:ok, enemy} = get_players_enemy(game, player.id)
+
+          if player.turn_state != :hit && enemy.turn_state != :hit do
+            progress_to_next_state_after_turn_over(game, player) ++ games
+          else
+            games
+          end
         end
 
       games = games ++ [game]
@@ -521,7 +532,11 @@ defmodule Whack.Game do
   def update_player(game, player) do
     update_in(game.players, fn players ->
       Enum.map(players, fn p ->
-        if p.id == player.id, do: player, else: p
+        cond do
+          is_nil(p) -> p
+          p.id == player.id -> player
+          true -> p
+        end
       end)
     end)
   end
@@ -530,7 +545,11 @@ defmodule Whack.Game do
   def update_enemy(game, enemy) do
     update_in(game.enemies, fn enemies ->
       Enum.map(enemies, fn e ->
-        if e.id == enemy.id, do: enemy, else: e
+        cond do
+          is_nil(e) -> e
+          e.id == enemy.id -> enemy
+          true -> e
+        end
       end)
     end)
   end
