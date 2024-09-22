@@ -56,8 +56,15 @@ defmodule Whack.Character do
     }
   end
 
-  def perform_hit(%{turn_state: :hit, draw_pile: []}) do
-    {:error, :empty_draw_pile}
+  def perform_hit(%{turn_state: :hit, draw_pile: []} = character) do
+    draw_pile = Enum.shuffle(character.discard_pile)
+
+    character =
+      character
+      |> Map.put(:draw_pile, draw_pile)
+      |> Map.put(:discard_pile, [])
+
+    perform_hit(character)
   end
 
   def perform_hit(%{turn_state: :hit} = character) do
@@ -70,6 +77,13 @@ defmodule Whack.Character do
       |> Map.put(:draw_pile, draw_pile)
       |> Map.put(:hand, hand)
       |> Map.put(:hand_value, hand_value)
+
+    character =
+      if Enum.empty?(character.draw_pile) and Enum.empty?(character.discard_pile) do
+        %{character | turn_state: :stand}
+      else
+        character
+      end
 
     character =
       if hand_value > 21 do
@@ -87,13 +101,6 @@ defmodule Whack.Character do
 
   def is_turn_in_state(%{turn_state: state}, state), do: :ok
   def is_turn_in_state(_, _), do: {:error, :invalid_turn_state}
-
-  @spec can_draw_from_draw_pile(t()) :: :ok | {:error, :empty_draw_pile}
-  def can_draw_from_draw_pile(%{draw_pile: []}), do: {:error, :empty_draw_pile}
-  def can_draw_from_draw_pile(%{draw_pile: [_ | _]}), do: :ok
-
-  @spec can_draw_from_draw_pile?(t()) :: boolean()
-  def can_draw_from_draw_pile?(character), do: length(character.draw_pile) > 0
 
   @spec can_continue_making_moves?(t(), t()) :: boolean()
   def can_continue_making_moves?(character1, character2) do

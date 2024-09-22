@@ -44,7 +44,10 @@ defmodule Whack.Game do
       raise ArgumentError, "Code must be a 4-character string of capital letters"
     end
 
-    draw_piles = Deck.fresh_deck() |> Deck.shuffle() |> List.duplicate(2)
+    draw_piles = [
+      Deck.fresh_deck() |> Deck.shuffle(),
+      Deck.fresh_deck() |> Deck.shuffle()
+    ]
 
     struct!(
       __MODULE__,
@@ -219,10 +222,9 @@ defmodule Whack.Game do
          :ok <- is_game_in_state(game, :playing),
          :ok <- is_players_turn(game, player_id),
          :ok <- Character.is_turn_in_state(player, :hit),
-         :ok <- Character.can_draw_from_draw_pile(player),
          :ok <- Hand.hand_not_busted(player.hand) do
-      [top_card | _] = player.draw_pile
       {:ok, player} = player |> Player.perform_hit()
+      [top_card | _] = player.hand
       busted_this_turn = !Hand.hand_not_busted?(player.hand)
 
       game =

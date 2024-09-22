@@ -72,7 +72,21 @@
       {#each Array(4) as _, i}
         <div class="flex gap-4 items-center justify-between">
           <div class="flex items-center gap-8">
-            {#if i < game.players.length}
+            {#if game.players[i]}
+              <div class="relative w-16 h-20">
+                {#each game.players[i].discard_pile as card, index (card.id)}
+                  <div
+                    class="absolute"
+                    style="left: {index *
+                      6}px; z-index: {index}; animation-delay: {index * 0.1}s;"
+                    animate:flip={{ duration: defaultDuration }}
+                    in:receive={{ key: card.id }}
+                    out:send={{ key: card.id }}
+                  >
+                    <Card variant="small" />
+                  </div>
+                {/each}
+              </div>
               <PlayerIcon
                 player={game.players[i]}
                 isPlayersTurn={isPlayersTurn(game.players[i])}
@@ -107,7 +121,7 @@
               </div>
 
               <HandDisplay character={game.players[i]} />
-            {:else}
+            {:else if game.state === "setup"}
               <p class="text-white/50 drop-shadow-text text-center">
                 waiting...
               </p>
@@ -115,7 +129,7 @@
           </div>
 
           <div class="flex items-center gap-8">
-            {#if i < game.enemies.length}
+            {#if game.enemies[i]}
               <HandDisplay character={game.enemies[i]} />
               <div class="flex gap-2 transition-all duration-300 ease-in-out">
                 {#each game.enemies[i].hand as card (card.id)}
@@ -124,7 +138,7 @@
                     in:receive={{ key: card.id }}
                     out:send={{ key: card.id }}
                   >
-                    <Card {card} />
+                    <Card {card} evil />
                   </div>
                 {/each}
               </div>
@@ -143,6 +157,20 @@
                 {/each}
               </div>
               <EnemyIcon enemy={game.enemies[i]} class="fade-in-right" />
+              <div class="relative w-16 h-20">
+                {#each game.enemies[i].discard_pile as card, index (card.id)}
+                  <div
+                    class="absolute"
+                    style="left: {index *
+                      6}px; z-index: {index}; animation-delay: {index * 0.1}s;"
+                    animate:flip={{ duration: defaultDuration }}
+                    in:receive={{ key: card.id }}
+                    out:send={{ key: card.id }}
+                  >
+                    <Card evil variant="small" />
+                  </div>
+                {/each}
+              </div>
             {/if}
           </div>
         </div>
