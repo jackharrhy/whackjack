@@ -314,13 +314,29 @@ defmodule Whack.Game do
     current_player_index = Enum.find_index(game.players, &(&1.id == player.id))
     next_player_index = current_player_index + 1
 
-    if next_player_index == length(game.players) do
-      finalize_round(game)
-    else
-      next_player = Enum.at(game.players, next_player_index)
-      game = game |> set_turn(next_player) |> recalculate_incoming_damage_for_everyone()
+    case find_next_non_nil_player(game.players, next_player_index) do
+      {:ok, next_player} ->
+        game = game |> set_turn(next_player) |> recalculate_incoming_damage_for_everyone()
+        [game]
 
-      [game]
+      :error ->
+        game =
+          game
+          |> new_message("Game over")
+          |> Map.put(:state, :finished)
+          |> recalculate_incoming_damage_for_everyone()
+
+        [game]
+    end
+  end
+
+  defp find_next_non_nil_player(players, start_index) do
+    players
+    |> Enum.drop(start_index)
+    |> Enum.find(&(&1 != nil))
+    |> case do
+      nil -> :error
+      player -> {:ok, player}
     end
   end
 
